@@ -1,0 +1,79 @@
+name: Build Windows app
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -q
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-build.txt
+
+      - name: Build executable
+        run: pyinstaller --noconfirm --clean packaging/TravelEssenceEmailStudio.spec
+
+      - name: Smoke test - launch the exe
+        shell: pwsh
+        run: |
+          $report = Join-Path $env:RUNNER_TEMP "smoke.txt"
+          $env:TE_SMOKE_TEST = $report
+          $p = Start-Process -FilePath "dist\TravelEssenceEmailStudio.exe" -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "App did not exit within 2 minutes" }
+          if ($p.ExitCode -ne 0) { throw "App exited with code $($p.ExitCode)" }
+          Get-Content $report
+          if (-not (Select-String -Path $report -Pattern "outlook_com=ok" -Quiet)) { throw "Outlook COM support missing from build" }
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          & $iscc packaging\installer.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TravelEssenceEmailStudio-windows
+          path: |
+            dist/TravelEssenceEmailStudio.exe
+            dist/TravelEssenceEmailStudio-Setup.exe
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/TravelEssenceEmailStudio.exe
+            dist/TravelEssenceEmailStudio-Setup.exe
