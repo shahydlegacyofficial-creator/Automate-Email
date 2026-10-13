@@ -81,17 +81,7 @@ fun AutomationScreen(app: App) {
         if (settings.backend == "simulate") {
             item { Banner("Simulation mode is on - campaigns run normally but no emails are actually sent. Change it in Settings.") }
         }
-        if (!batteryOk) {
-            item {
-                SectionCard {
-                    Banner("For long campaigns, allow the app to run unrestricted in the background so Android doesn't pause it.", Tone.Accent, Icons.Filled.BatteryAlert)
-                    TextButton(onClick = {
-                        runCatching { context.startActivity(Intent(AndroidSettings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
-                        batteryOk = true
-                    }) { Text("Open battery settings") }
-                }
-            }
-        }
+        if (showRun) item { ProgressCard(campaign, campaign.total) }
         item {
             val total = if (showRun) campaign.total else eligible.size
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -136,6 +126,18 @@ fun AutomationScreen(app: App) {
                 Text("1 email every $every · about ${3600 / interval} emails per hour" +
                     if (!running && eligible.isNotEmpty()) " · ≈ ${formatDuration((eligible.size - 1L) * interval)} for ${eligible.size} emails" else "",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!batteryOk) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.BatteryAlert, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Long campaign? Let the app run unrestricted in the background.", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                    }
+                    TextButton(onClick = {
+                        runCatching { context.startActivity(Intent(AndroidSettings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+                        batteryOk = true
+                    }) { Text("Open battery settings") }
+                }
                 HorizontalDivider(color = LocalTones.current.border)
                 if (!running) {
                     PrimaryButton("Start sending", Icons.Filled.PlayArrow, Modifier.fillMaxWidth()) {
@@ -151,7 +153,7 @@ fun AutomationScreen(app: App) {
                 }
             }
         }
-        item { ProgressCard(campaign, if (showRun) campaign.total else eligible.size) }
+        if (!showRun) item { ProgressCard(campaign, eligible.size) }
         if (campaign.autoPausedReason.isNotEmpty() && campaign.paused) {
             item {
                 Banner("Sending was paused after several failures in a row. Last error: ${campaign.autoPausedReason}. " +

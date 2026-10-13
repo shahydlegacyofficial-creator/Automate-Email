@@ -40,6 +40,17 @@ Also included:
 |---|---|
 | ![Outlook data](docs/screenshots/light-outlook.png) | ![Dark](docs/screenshots/dark-compose.png) |
 
+## Android app
+
+There is also a native **Android app** with the same features. It sends through Microsoft 365 / Outlook.com
+(saved to Sent Items), SMTP, or simulation, and collects data from your Outlook mailbox, an IMAP mailbox or
+the phone's contacts. See [`android/README.md`](android/README.md) for the APK download and the one-time
+Microsoft sign-in setup.
+
+| Dashboard | Compose | Campaign notification |
+|---|---|---|
+| ![Android dashboard](docs/android-screenshots/light-dashboard.png) | ![Android compose](docs/android-screenshots/dark-compose.png) | ![Android notification](docs/android-screenshots/notification.png) |
+
 ## Download the Windows app
 
 Every push is built on a Windows machine by GitHub Actions

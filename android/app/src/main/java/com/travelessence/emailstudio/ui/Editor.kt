@@ -14,10 +14,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +29,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -109,6 +109,7 @@ private val PALETTE = listOf(
 )
 
 /** Rich-text email editor: a contenteditable WebView with a native formatting toolbar. */
+@OptIn(ExperimentalLayoutApi::class)
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "JavascriptInterface")
 @Composable
 fun EmailEditor(
@@ -164,12 +165,12 @@ fun EmailEditor(
 
     val tones = LocalTones.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
+        FlowRow(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(1.dp, tones.border, RoundedCornerShape(12.dp))
-                .horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
             Tool(Icons.AutoMirrored.Filled.Undo, "Undo") { cmd("undo") }
             Tool(Icons.AutoMirrored.Filled.Redo, "Redo") { cmd("redo") }
@@ -266,7 +267,9 @@ private fun MenuTool(icon: ImageVector, description: String, options: List<Pair<
 
 @Composable
 private fun Sep() {
-    Box(Modifier.padding(horizontal = 3.dp).width(1.dp).height(22.dp).background(MaterialTheme.colorScheme.outline))
+    Box(Modifier.height(40.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.padding(horizontal = 3.dp).width(1.dp).height(22.dp).background(MaterialTheme.colorScheme.outline))
+    }
 }
 
 @Composable
