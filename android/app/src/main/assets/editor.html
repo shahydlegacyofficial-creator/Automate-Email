@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; background: #FFFFFF; }
+  body { color: #1F2937; font-family: Calibri, Carlito, Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.45; }
+  #editor { min-height: 100vh; padding: 14px 16px 40px; outline: none; box-sizing: border-box; word-wrap: break-word; }
+  #editor:empty:before { content: attr(data-placeholder); color: #94A3B8; }
+  #editor.readonly { min-height: 0; }
+  img { max-width: 100%; height: auto; }
+  a { color: #0B7A8F; }
+  p { margin: 0 0 8px; }
+  ul, ol { margin: 0 0 8px; padding-left: 26px; }
+</style>
+</head>
+<body>
+<div id="editor" contenteditable="true" data-placeholder="Write your email here… Tip: use the { } button to add the customer's name."></div>
+<script>
+  var ed = document.getElementById('editor');
+  var bridge = window.Android;
+
+  function notify() { if (bridge) bridge.onChange(ed.innerHTML); }
+  function state() {
+    if (!bridge) return;
+    var q = function (c) { try { return document.queryCommandState(c); } catch (e) { return false; } };
+    bridge.onState(JSON.stringify({
+      bold: q('bold'), italic: q('italic'), underline: q('underline'), strike: q('strikeThrough'),
+      ul: q('insertUnorderedList'), ol: q('insertOrderedList'),
+      left: q('justifyLeft'), center: q('justifyCenter'), right: q('justifyRight'), justify: q('justifyFull')
+    }));
+  }
+
+  // Keep the caret/selection so toolbar taps (which blur the page) act on the right text.
+  var saved = null;
+  document.addEventListener('selectionchange', function () {
+    var sel = window.getSelection();
+    if (sel.rangeCount > 0 && ed.contains(sel.anchorNode)) saved = sel.getRangeAt(0).cloneRange();
+    state();
+  });
+  function restore() {
+    ed.focus();
+    if (saved) {
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(saved);
+    }
+  }
+
+  ed.addEventListener('input', notify);
+
+  function setHtml(html) { ed.innerHTML = html || ''; saved = null; }
+  function setReadOnly() { ed.setAttribute('contenteditable', 'false'); ed.className = 'readonly'; }
+  function cmd(name, value) {
+    restore();
+    document.execCommand('styleWithCSS', false, name === 'hiliteColor' || name === 'foreColor');
+    document.execCommand(name, false, value === undefined ? null : value);
+    notify(); state();
+  }
+  function insertText(text) { restore(); document.execCommand('insertText', false, text); notify(); }
+  function insertHtml(html) { restore(); document.execCommand('insertHTML', false, html); notify(); }
+  function insertImage(src) { insertHtml('<img src="' + src + '" style="max-width:100%;height:auto">'); }
+  function link(url, text) {
+    restore();
+    var sel = window.getSelection();
+    if (sel && !sel.isCollapsed) {
+      document.execCommand('createLink', false, url);
+    } else {
+      var a = document.createElement('a');
+      a.href = url; a.textContent = text || url;
+      document.execCommand('insertHTML', false, a.outerHTML + '&nbsp;');
+    }
+    notify();
+  }
+  function selectedText() { var s = window.getSelection(); return s ? s.toString() : ''; }
+</script>
+</body>
+</html>

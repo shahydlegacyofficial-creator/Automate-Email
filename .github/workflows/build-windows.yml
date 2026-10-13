@@ -4,7 +4,13 @@ on:
   push:
     branches: ["**"]
     tags: ["v*"]
+    paths-ignore:
+      - "android/**"
+      - "docs/android-screenshots/**"
+      - ".github/workflows/build-android.yml"
   pull_request:
+    paths-ignore:
+      - "android/**"
   workflow_dispatch:
 
 permissions:
