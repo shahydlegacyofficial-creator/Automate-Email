@@ -1,6 +1,5 @@
 package com.travelessence.emailstudio
 
-import com.sun.net.httpserver.HttpServer
 import com.travelessence.emailstudio.core.Attachment
 import com.travelessence.emailstudio.core.OutgoingEmail
 import com.travelessence.emailstudio.data.CollectOptions
@@ -13,15 +12,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.net.InetSocketAddress
+import java.io.BufferedInputStream
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
 import java.net.URLDecoder
 import java.nio.file.Files
 import java.util.Base64
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 
 /** Exercises the Microsoft Graph client against a local fake of the Microsoft endpoints. */
 class GraphClientTest {
-    private lateinit var server: HttpServer
     private val requests = mutableListOf<Triple<String, String, String>>()   // method, path+query, body
     private val polls = AtomicInteger()
     private var base = ""
@@ -32,44 +34,80 @@ class GraphClientTest {
         override fun save(value: String?) { this.value = value }
     }
 
+    private lateinit var socket: ServerSocket
+    @Volatile private var serving = true
+
+    private fun route(method: String, path: String, body: String): Pair<Int, String> = when {
+        path.endsWith("/devicecode") -> 200 to """{"device_code":"DEV","user_code":"ABC-123","verification_uri":"https://microsoft.com/devicelogin","expires_in":60,"interval":1}"""
+        path.endsWith("/token") && "device_code" in body ->
+            if (polls.incrementAndGet() < 2) 400 to """{"error":"authorization_pending"}"""
+            else 200 to """{"access_token":"AT1","refresh_token":"RT1","expires_in":3600}"""
+        path.endsWith("/token") && "refresh_token" in body -> 200 to """{"access_token":"AT2","expires_in":3600}"""
+        path.startsWith("/graph/me?") -> 200 to """{"displayName":"Travel Essence","mail":"info@travelessence.com"}"""
+        path == "/graph/me/sendMail" -> 202 to ""
+        path == "/graph/me/messages" -> 201 to """{"id":"MSG1"}"""
+        path.endsWith("/createUploadSession") -> 201 to """{"uploadUrl":"$base/upload/1"}"""
+        path.startsWith("/upload/") -> 200 to "{}"
+        path.endsWith("/send") -> 202 to ""
+        path.startsWith("/graph/me/mailFolders/sentitems/messages") -> 200 to """{"value":[
+            {"id":"m1","subject":"Travel Essence offers","sentDateTime":"2026-10-01T09:00:00Z","from":{"emailAddress":{"address":"info@travelessence.com"}},
+             "toRecipients":[{"emailAddress":{"address":"Sarah@Gmail.com","name":"Sarah Khan"}}],"hasAttachments":true},
+            {"id":"m2","subject":"Internal note","sentDateTime":"2026-09-30T09:00:00Z","from":{"emailAddress":{"address":"info@travelessence.com"}},
+             "toRecipients":[{"emailAddress":{"address":"boss@travelessence.com","name":"Boss"}}],"hasAttachments":false}
+            ]}"""
+        else -> 404 to """{"error":{"code":"NotFound","message":"no route $path"}}"""
+    }
+
+    /** Minimal HTTP/1.1 server (one request per connection) - enough for HttpURLConnection. */
+    private fun handle(client: Socket) = client.use { sock ->
+        val input = BufferedInputStream(sock.getInputStream())
+        fun readLine(): String {
+            val sb = StringBuilder()
+            while (true) {
+                val c = input.read()
+                if (c < 0 || c == '\n'.code) break
+                if (c != '\r'.code) sb.append(c.toChar())
+            }
+            return sb.toString()
+        }
+        val (method, path) = readLine().split(" ").let { it[0] to it[1] }
+        var length = 0
+        while (true) {
+            val line = readLine()
+            if (line.isEmpty()) break
+            if (line.lowercase().startsWith("content-length:")) length = line.substringAfter(':').trim().toInt()
+        }
+        val bytes = ByteArray(length)
+        var read = 0
+        while (read < length) { val n = input.read(bytes, read, length - read); if (n < 0) break; read += n }
+        val body = String(bytes, Charsets.ISO_8859_1)
+        synchronized(requests) { requests += Triple(method, path, body) }
+        val (code, response) = route(method, path, body)
+        val payload = response.toByteArray()
+        val out = sock.getOutputStream()
+        out.write(("HTTP/1.1 $code X\r\nContent-Type: application/json\r\nContent-Length: ${payload.size}\r\n" +
+            "Connection: close\r\n\r\n").toByteArray())
+        out.write(payload)
+        out.flush()
+    }
+
     @Before
     fun start() {
-        server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        server.createContext("/") { ex ->
-            val body = ex.requestBody.readBytes().toString(Charsets.UTF_8)
-            val path = ex.requestURI.rawPath + (ex.requestURI.rawQuery?.let { "?$it" } ?: "")
-            synchronized(requests) { requests += Triple(ex.requestMethod, path, body) }
-            val (code, response) = when {
-                path.endsWith("/devicecode") -> 200 to """{"device_code":"DEV","user_code":"ABC-123","verification_uri":"https://microsoft.com/devicelogin","expires_in":60,"interval":1}"""
-                path.endsWith("/token") && "device_code" in body ->
-                    if (polls.incrementAndGet() < 2) 400 to """{"error":"authorization_pending"}"""
-                    else 200 to """{"access_token":"AT1","refresh_token":"RT1","expires_in":3600}"""
-                path.endsWith("/token") && "refresh_token" in body -> 200 to """{"access_token":"AT2","expires_in":3600}"""
-                path.startsWith("/graph/me?") -> 200 to """{"displayName":"Travel Essence","mail":"info@travelessence.com"}"""
-                path == "/graph/me/sendMail" -> 202 to ""
-                path == "/graph/me/messages" -> 201 to """{"id":"MSG1"}"""
-                path.endsWith("/createUploadSession") -> 201 to """{"uploadUrl":"$base/upload/1"}"""
-                path.startsWith("/upload/") -> 200 to "{}"
-                path.endsWith("/send") -> 202 to ""
-                path.startsWith("/graph/me/mailFolders/sentitems/messages") -> 200 to """{"value":[
-                    {"id":"m1","subject":"Travel Essence offers","sentDateTime":"2026-10-01T09:00:00Z","from":{"emailAddress":{"address":"info@travelessence.com"}},
-                     "toRecipients":[{"emailAddress":{"address":"Sarah@Gmail.com","name":"Sarah Khan"}}],"hasAttachments":true},
-                    {"id":"m2","subject":"Internal note","sentDateTime":"2026-09-30T09:00:00Z","from":{"emailAddress":{"address":"info@travelessence.com"}},
-                     "toRecipients":[{"emailAddress":{"address":"boss@travelessence.com","name":"Boss"}}],"hasAttachments":false}
-                    ]}"""
-                else -> 404 to """{"error":{"code":"NotFound","message":"no route $path"}}"""
+        socket = ServerSocket(0, 50, InetAddress.getByName("127.0.0.1"))
+        base = "http://127.0.0.1:${socket.localPort}"
+        thread(isDaemon = true) {
+            while (serving) {
+                val client = try { socket.accept() } catch (e: Exception) { break }
+                thread(isDaemon = true) { runCatching { handle(client) } }
             }
-            val bytes = response.toByteArray()
-            ex.sendResponseHeaders(code, if (bytes.isEmpty()) -1 else bytes.size.toLong())
-            if (bytes.isNotEmpty()) ex.responseBody.use { it.write(bytes) }
-            ex.close()
         }
-        server.start()
-        base = "http://127.0.0.1:${server.address.port}"
     }
 
     @After
-    fun stop() = server.stop(0)
+    fun stop() {
+        serving = false
+        socket.close()
+    }
 
     private fun client(tokens: TokenStore = MemoryTokens()) =
         GraphClient("client-id", "common", tokens, graphBase = "$base/graph", loginBase = base)
