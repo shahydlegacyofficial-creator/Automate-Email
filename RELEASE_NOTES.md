@@ -23,6 +23,6 @@ Email automation for **Travel Essence**: write an email once, then the app sends
 - **Write & send** manual emails, **History** with re-queue, a **do-not-email list**, and light/dark themes
 
 ## Sending methods
-- **Windows**: uses the installed classic Outlook app (emails appear in Sent Items), or SMTP
-- **Android**: Microsoft 365 / Outlook.com sign-in (one-time setup, see `android/README.md`), SMTP/IMAP, or simulation
+- **Windows**: the classic Outlook app on the PC, **Microsoft 365 / new Outlook** sign-in, or SMTP
+- **Android**: Microsoft 365 / new Outlook sign-in (one-time setup, see `android/README.md`), SMTP/IMAP, or simulation
 - Both apps have a **simulation mode** for practising without sending anything
