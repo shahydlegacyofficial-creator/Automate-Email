@@ -1,5 +1,10 @@
 Email automation for **Travel Essence**: write an email once, then the app sends it to each customer one at a time, one minute apart.
 
+## What's new in 1.1.0
+- **Email signature builder (Windows and Android):** Travel Essence contact details with icons, social media links (Facebook, Instagram, WhatsApp, TikTok, LinkedIn, YouTube, X), your logo, a dark or light card and your choice of accent colour. It's added automatically under every campaign, test and manual email, and the icons and logo are attached inside each email so they always show.
+- **New Outlook support on Windows:** sign in to **Microsoft 365 / new Outlook** in Settings to send from your mailbox and collect sent emails, customer addresses and contacts online. No classic Outlook needed.
+- **Outlook data:** a new *Connect to* option chooses between the Outlook app on this PC and Microsoft 365 / new Outlook.
+
 ## Downloads
 
 | File | Platform | What it is |

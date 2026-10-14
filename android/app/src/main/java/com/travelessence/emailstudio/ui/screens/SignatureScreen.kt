@@ -78,7 +78,7 @@ fun SignatureScreen(app: App) {
         item { PageHeader("Email signature", "Your Travel Essence contact details, social links and logo - added below every email.") }
         item {
             SectionCard(title = "Preview", subtitle = "How the signature appears under your emails.") {
-                HtmlView(preview, Modifier.fillMaxWidth().height(420.dp))
+                HtmlView(preview, Modifier.fillMaxWidth().height(330.dp))
             }
         }
         item {
