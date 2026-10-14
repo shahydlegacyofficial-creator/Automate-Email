@@ -10,6 +10,7 @@ a = Analysis(
     datas=[
         (os.path.join(ROOT, "assets", "icon.png"), "assets"),
         (os.path.join(ROOT, "assets", "icon.ico"), "assets"),
+        (os.path.join(ROOT, "assets", "signature_icons"), os.path.join("assets", "signature_icons")),
     ],
     hiddenimports=[
         "win32timezone",
@@ -17,6 +18,7 @@ a = Analysis(
         "pythoncom",
         "pywintypes",
         "keyring.backends.Windows",
+        "win32crypt",
     ],
     excludes=["tkinter", "unittest", "pytest", "aiosmtpd"],
     noarchive=False,

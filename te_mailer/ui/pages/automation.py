@@ -21,6 +21,7 @@ from ..widgets import (
     Banner, Card, Page, Pill, StatCard, button, divider, field_label, format_duration, label,
     make_table, status_item, table_item,
 )
+from ..signature_assets import signature_html
 from ..workers import CampaignWorker
 
 
@@ -277,6 +278,10 @@ class AutomationPage(Page):
             if not ok:
                 QMessageBox.critical(self, "Outlook unavailable", reason)
                 return
+        if backend == "graph" and not self.state.settings.get("ms_account"):
+            QMessageBox.information(self, "Not signed in", "Sign in to Microsoft 365 / new Outlook in Settings first.")
+            self.state.navigate.emit("settings")
+            return
 
         interval = self.interval_spin.value()
         count = len(eligible)
@@ -323,7 +328,7 @@ class AutomationPage(Page):
         self._update_counts()
 
         self.worker = CampaignWorker(self.state.make_sender(), self.recipients, subject,
-                                     build_email_html(html), list(attachments), interval,
+                                     build_email_html(html, signature_html(self.state.settings)), list(attachments), interval,
                                      self.state.settings.get("name_fallback", ""), self.session)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)

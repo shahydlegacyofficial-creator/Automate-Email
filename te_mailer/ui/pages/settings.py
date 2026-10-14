@@ -12,11 +12,12 @@ from ... import __version__
 from ...core import outlook_data, storage
 from ...core.recipients import is_valid_email
 from ...core.senders import SmtpSender, outlook_available
+from ..microsoft import MicrosoftAccountCard
 from ..widgets import Card, Page, button, field_label, label
 from ..workers import run_task
 
 SMTP_PRESETS = {
-    "Microsoft 365 / Outlook.com": ("smtp.office365.com", 587, "starttls"),
+    "Microsoft 365 / Outlook.com (if SMTP AUTH is allowed)": ("smtp.office365.com", 587, "starttls"),
     "Gmail / Google Workspace": ("smtp.gmail.com", 587, "starttls"),
     "Custom server": None,
 }
@@ -55,18 +56,21 @@ class SettingsPage(Page):
         # ---- sending method
         method = Card("Sending method")
         self.method_group = QButtonGroup(self)
-        self.radio_outlook = QRadioButton("Microsoft Outlook (recommended)")
+        self.radio_outlook = QRadioButton("Outlook app on this PC (classic Outlook)")
+        self.radio_graph = QRadioButton("Microsoft 365 / new Outlook (sign in online)")
         self.radio_smtp = QRadioButton("SMTP server")
         self.radio_sim = QRadioButton("Simulation - practise without sending anything")
         descriptions = {
-            self.radio_outlook: "Sends through the Outlook desktop app on this PC, from your Travel Essence "
-                                "mailbox. Emails appear in Outlook's Sent Items.",
-            self.radio_smtp: "Sends directly through a mail server (e.g. Microsoft 365). Use this if you "
-                             "use the new Outlook app, which does not support automation.",
+            self.radio_outlook: "Sends through the classic Outlook desktop app on this PC, from your Travel "
+                                "Essence mailbox. Emails appear in Outlook's Sent Items.",
+            self.radio_graph: "For the new Outlook, Outlook on the web or any Microsoft 365 mailbox. Signs in "
+                              "online once; emails are sent from your mailbox and saved in Sent Items.",
+            self.radio_smtp: "Sends directly through a mail server that allows SMTP sign-in (e.g. Gmail, "
+                             "Zoho or your web host).",
             self.radio_sim: "Runs campaigns exactly as normal (timer, progress, history) but no email "
                             "leaves this computer.",
         }
-        for radio in (self.radio_outlook, self.radio_smtp, self.radio_sim):
+        for radio in (self.radio_outlook, self.radio_graph, self.radio_smtp, self.radio_sim):
             self.method_group.addButton(radio)
             method.add(radio)
             hint = label(descriptions[radio], "Hint", wrap=True)
@@ -90,10 +94,14 @@ class SettingsPage(Page):
         acc_row.addWidget(self.account_box, 1)
         acc_row.addWidget(load_acc)
         form.addRow(field_label("SEND FROM"), acc_row)
-        self.signature = QCheckBox("Add my default Outlook signature to every email")
+        self.signature = QCheckBox("Also add the signature saved in the Outlook app")
         form.addRow("", self.signature)
         self.outlook_card.add(form)
         left.addWidget(self.outlook_card)
+
+        # ---- microsoft 365 / new outlook
+        self.graph_card = MicrosoftAccountCard(state)
+        left.addWidget(self.graph_card)
 
         # ---- smtp
         self.smtp_card = Card("SMTP server")
@@ -195,6 +203,7 @@ class SettingsPage(Page):
 
     def _method_changed(self, *_):
         self.outlook_card.setVisible(self.radio_outlook.isChecked())
+        self.graph_card.setVisible(self.radio_graph.isChecked())
         self.smtp_card.setVisible(self.radio_smtp.isChecked())
 
     def _apply_preset(self, name: str):
@@ -207,7 +216,8 @@ class SettingsPage(Page):
 
     def load(self):
         s = self.state.settings
-        {"smtp": self.radio_smtp, "simulate": self.radio_sim}.get(s.get("backend"), self.radio_outlook).setChecked(True)
+        {"smtp": self.radio_smtp, "simulate": self.radio_sim, "graph": self.radio_graph}.get(
+            s.get("backend"), self.radio_outlook).setChecked(True)
         self.account_box.clear()
         self.account_box.addItem("")
         if s.get("outlook_account"):
@@ -232,9 +242,12 @@ class SettingsPage(Page):
         self._method_changed()
 
     def _collect(self) -> dict:
-        backend = "smtp" if self.radio_smtp.isChecked() else "simulate" if self.radio_sim.isChecked() else "outlook"
+        backend = ("smtp" if self.radio_smtp.isChecked() else "simulate" if self.radio_sim.isChecked()
+                   else "graph" if self.radio_graph.isChecked() else "outlook")
         return {
             "backend": backend,
+            "ms_client_id": self.graph_card.client_id.text().strip(),
+            "ms_tenant": self.graph_card.tenant.text().strip() or "common",
             "outlook_account": self.account_box.currentText().strip(),
             "include_signature": self.signature.isChecked(),
             "smtp_host": self.smtp_host.text().strip(),

@@ -97,7 +97,7 @@ private val BOTTOM = listOf(
     Triple(Screen.Automation, "Automation", Icons.Filled.Bolt),
     Triple(Screen.More, "More", Icons.Filled.Apps),
 )
-private val MORE_CHILDREN = setOf(Screen.QuickSend, Screen.Outlook, Screen.History, Screen.Settings)
+private val MORE_CHILDREN = setOf(Screen.QuickSend, Screen.Signature, Screen.Outlook, Screen.History, Screen.Settings)
 
 @Composable
 fun AppRoot(app: App, start: Screen) {
@@ -190,6 +190,7 @@ fun AppRoot(app: App, start: Screen) {
                 Screen.Automation -> AutomationScreen(app)
                 Screen.More -> MoreScreen(app) { screen = it }
                 Screen.QuickSend -> QuickSendScreen(app)
+                Screen.Signature -> SignatureScreen(app)
                 Screen.Outlook -> OutlookScreen(app)
                 Screen.History -> HistoryScreen(app)
                 Screen.Settings -> SettingsScreen(app)

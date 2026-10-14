@@ -16,7 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.travelessence.emailstudio.App
 import com.travelessence.emailstudio.AppState
 import com.travelessence.emailstudio.Screen
-import com.travelessence.emailstudio.campaign.signatureHtml
+import com.travelessence.emailstudio.SignatureAssets
 import com.travelessence.emailstudio.core.Attachment
 import com.travelessence.emailstudio.core.Draft
 import com.travelessence.emailstudio.core.Html
@@ -143,7 +143,7 @@ fun ComposeScreen(app: App) {
 
     when (dialog) {
         "preview" -> PreviewDialog(draft.subject, draft.html, draft.attachments, sample, settings.nameFallback,
-            signatureHtml(settings.signatureHtml)) { dialog = null }
+            SignatureAssets.forSettings(app, settings)) { dialog = null }
         "test" -> TextInputDialog("Send a test email", "Sends via ${backendLabel(settings)}", "Test address", settings.testEmail,
             confirm = "Send", onDismiss = { dialog = null }) { address ->
             val to = address.trim().lowercase()
@@ -151,7 +151,7 @@ fun ComposeScreen(app: App) {
             if (to != settings.testEmail) state.saveSettings { it.copy(testEmail = to) }
             val r = Recipient(to, sample.name)
             val email = OutgoingEmail(listOf(to), "[TEST] " + Html.personalize(draft.subject, r, settings.nameFallback),
-                Html.buildEmail(Html.personalize(draft.html, r, settings.nameFallback, true), signatureHtml(settings.signatureHtml)),
+                Html.buildEmail(Html.personalize(draft.html, r, settings.nameFallback, true), SignatureAssets.forSettings(app, settings)),
                 draft.attachments)
             sending = true
             scope.launch {

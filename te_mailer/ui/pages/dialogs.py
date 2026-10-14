@@ -13,7 +13,7 @@ class PreviewDialog(QDialog):
     """Shows the email exactly as one customer will receive it."""
 
     def __init__(self, parent, subject: str, html: str, recipient: Recipient, fallback: str,
-                 attachments: list[str]):
+                 attachments: list[str], signature: str = ""):
         super().__init__(parent)
         self.setWindowTitle("Email preview")
         self.resize(820, 720)
@@ -35,7 +35,7 @@ class PreviewDialog(QDialog):
         browser = QTextBrowser()
         browser.setObjectName("EmailPaper")
         browser.setOpenExternalLinks(True)
-        browser.setHtml(build_email_html(personalize(html, recipient, fallback, is_html=True)))
+        browser.setHtml(build_email_html(personalize(html, recipient, fallback, is_html=True), signature))
         layout.addWidget(browser, 1)
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)

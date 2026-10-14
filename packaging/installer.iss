@@ -2,7 +2,7 @@
 ;   iscc /DAppVersion=1.0.0 packaging\installer.iss
 
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.1.0"
 #endif
 #define AppName "Travel Essence Email Studio"
 #define AppExe "TravelEssenceEmailStudio.exe"

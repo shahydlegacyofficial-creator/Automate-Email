@@ -11,7 +11,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.travelessence.emailstudio.App
-import com.travelessence.emailstudio.campaign.signatureHtml
+import com.travelessence.emailstudio.SignatureAssets
 import com.travelessence.emailstudio.core.Attachment
 import com.travelessence.emailstudio.core.Html
 import com.travelessence.emailstudio.core.OutgoingEmail
@@ -60,7 +60,7 @@ fun QuickSendScreen(app: App) {
         val toList = addresses(to).first
         val ccList = addresses(cc).first
         val bccList = addresses(bcc).first
-        val email = OutgoingEmail(toList, subject.text.trim(), Html.buildEmail(html, signatureHtml(settings.signatureHtml)),
+        val email = OutgoingEmail(toList, subject.text.trim(), Html.buildEmail(html, SignatureAssets.forSettings(app, settings)),
             attachments, ccList, bccList)
         sending = true
         scope.launch {

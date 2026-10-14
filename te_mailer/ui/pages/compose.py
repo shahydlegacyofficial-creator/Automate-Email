@@ -17,6 +17,7 @@ from ...core.senders import OutgoingEmail, backend_label
 from ..editor import AttachmentList, EmailEditor
 from ..icons import icon
 from ..widgets import Card, Page, Pill, button, field_label, label
+from ..signature_assets import signature_html
 from ..workers import run_task
 from .dialogs import PreviewDialog
 
@@ -211,7 +212,8 @@ class ComposePage(Page):
 
     def preview(self):
         PreviewDialog(self, self.subject.text(), self.editor.html(), self._sample_recipient(),
-                      self.state.settings.get("name_fallback", ""), self.attachments.paths()).exec()
+                      self.state.settings.get("name_fallback", ""), self.attachments.paths(),
+                      signature_html(self.state.settings)).exec()
 
     def send_test(self):
         if not self.subject.text().strip() or self.editor.is_blank():
@@ -236,7 +238,8 @@ class ComposePage(Page):
         email = OutgoingEmail(
             to=[address],
             subject="[TEST] " + personalize(self.subject.text(), recipient, fallback),
-            html=build_email_html(personalize(self.editor.html(), recipient, fallback, is_html=True)),
+            html=build_email_html(personalize(self.editor.html(), recipient, fallback, is_html=True),
+                                  signature_html(self.state.settings)),
             attachments=self.attachments.paths(),
         )
         sender = self.state.make_sender()

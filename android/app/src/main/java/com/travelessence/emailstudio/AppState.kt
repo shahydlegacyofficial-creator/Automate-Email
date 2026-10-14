@@ -28,6 +28,7 @@ enum class Screen(val title: String) {
     Automation("Automation"),
     More("More"),
     QuickSend("Write & send"),
+    Signature("Email signature"),
     Outlook("Outlook data"),
     History("History"),
     Settings("Settings"),

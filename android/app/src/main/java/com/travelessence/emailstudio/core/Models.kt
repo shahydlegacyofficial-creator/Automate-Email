@@ -74,7 +74,8 @@ data class Settings(
     val intervalSeconds: Int = 60,
     val nameFallback: String = "Valued Customer",
     val testEmail: String = "",
-    val signatureHtml: String = "",
+    val signatureHtml: String = "",            // legacy plain-text signature (v1.0); superseded by [signature]
+    val signature: SignatureConfig = SignatureConfig(),
     val smtpHost: String = "",
     val smtpPort: Int = 587,
     val smtpSecurity: String = "starttls",   // starttls | ssl | none

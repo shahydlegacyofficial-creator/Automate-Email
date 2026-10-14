@@ -145,6 +145,8 @@ fun MoreScreen(app: App, open: (Screen) -> Unit) {
             SectionCard {
                 MoreRow(Icons.Filled.Mail, "Write & send", "Compose a one-off email and send it now") { open(Screen.QuickSend) }
                 HorizontalDivider(color = LocalTones.current.border)
+                MoreRow(Icons.Filled.Badge, "Email signature", "Contact details, social links and logo under every email") { open(Screen.Signature) }
+                HorizontalDivider(color = LocalTones.current.border)
                 MoreRow(Icons.Filled.Storage, "Outlook data", "Collect customers and past emails from your mailbox") { open(Screen.Outlook) }
                 HorizontalDivider(color = LocalTones.current.border)
                 MoreRow(Icons.Filled.History, "History", "Every campaign with per-customer results") { open(Screen.History) }

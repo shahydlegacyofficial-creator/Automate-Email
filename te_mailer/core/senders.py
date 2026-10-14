@@ -312,6 +312,10 @@ def create_sender(settings: dict, password: str = "") -> BaseSender:
         )
     if backend == "simulate":
         return SimulatedSender()
+    if backend == "graph":
+        from .graph import GraphSender, client_from_settings   # local import: graph imports this module
+
+        return GraphSender(client_from_settings(settings))
     return OutlookSender(settings.get("outlook_account", ""), bool(settings.get("include_signature")))
 
 
@@ -321,5 +325,7 @@ def backend_label(settings: dict) -> str:
         return f"SMTP · {settings.get('smtp_from_email') or settings.get('smtp_username') or 'not configured'}"
     if backend == "simulate":
         return "Simulation mode (no emails are sent)"
+    if backend == "graph":
+        return f"Microsoft 365 / new Outlook · {settings.get('ms_account') or 'not signed in'}"
     account = settings.get("outlook_account") or "default account"
     return f"Microsoft Outlook · {account}"

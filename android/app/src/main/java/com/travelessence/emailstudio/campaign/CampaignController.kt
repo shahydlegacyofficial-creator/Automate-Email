@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat
 import com.travelessence.emailstudio.AppState
 import com.travelessence.emailstudio.MainActivity
 import com.travelessence.emailstudio.R
+import com.travelessence.emailstudio.SignatureAssets
 import com.travelessence.emailstudio.core.Attachment
 import com.travelessence.emailstudio.core.Html
 import com.travelessence.emailstudio.core.Recipient
@@ -62,7 +63,7 @@ class CampaignController(private val context: Context, private val app: AppState
             sender = app.makeSender(),
             recipients = recipients,
             subject = subject,
-            html = Html.buildEmail(fragmentHtml, signatureHtml(settings.signatureHtml)),
+            html = Html.buildEmail(fragmentHtml, SignatureAssets.forSettings(context, settings)),
             attachments = attachments,
             interval = interval,
             fallback = settings.nameFallback,
@@ -112,7 +113,3 @@ class CampaignController(private val context: Context, private val app: AppState
         NotificationManagerCompat.from(context).notify(NOTIFICATION_DONE, n)
     }
 }
-
-/** The optional signature is entered as plain text; lines become <br>-separated HTML. */
-fun signatureHtml(text: String): String =
-    if (text.isBlank()) "" else Html.escape(text.trim()).replace("\n", "<br>")

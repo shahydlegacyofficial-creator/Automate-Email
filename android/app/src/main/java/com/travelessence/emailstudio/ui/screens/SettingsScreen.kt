@@ -73,7 +73,8 @@ fun SettingsScreen(app: App) {
             problem = "The test email address is not valid."; return
         }
         s = updated
-        state.saveSettings { updated.copy(msAccount = it.msAccount) }
+        // Keep values owned by other screens (sign-in account, signature editor) as they are now.
+        state.saveSettings { updated.copy(msAccount = it.msAccount, signature = it.signature) }
         state.smtpPassword = password
         if (notify) state.notify("Settings saved")
     }
@@ -104,7 +105,7 @@ fun SettingsScreen(app: App) {
         item {
             SectionCard(title = "Sending method") {
                 listOf(
-                    Triple("microsoft", "Microsoft 365 / Outlook.com (recommended)", "Sends from your Outlook mailbox through Microsoft's secure sign-in. Emails are saved in Sent Items - just like the Outlook app."),
+                    Triple("microsoft", "Microsoft 365 / new Outlook (recommended)", "Sends from your Outlook mailbox through Microsoft's secure sign-in. Emails are saved in Sent Items - just like the Outlook app."),
                     Triple("smtp", "SMTP / IMAP email account", "Any provider that allows SMTP (Gmail, Zoho, hosting providers). Uses an app password."),
                     Triple("simulate", "Simulation - practise without sending", "Runs campaigns exactly as normal but no email leaves the phone."),
                 ).forEach { (key, title, text) ->
@@ -199,9 +200,10 @@ fun SettingsScreen(app: App) {
                     label = { Text("Name if unknown") }, placeholder = { Text("Valued Customer") })
                 OutlinedTextField(s.testEmail, { s = s.copy(testEmail = it.trim()) }, Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text("Send test emails to") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
-                OutlinedTextField(s.signatureHtml, { s = s.copy(signatureHtml = it) }, Modifier.fillMaxWidth().heightIn(min = 100.dp),
-                    label = { Text("Signature (added to every email)") },
-                    placeholder = { Text("Kind regards,\nTravel Essence\n+44 20 1234 5678 · travelessence.com") })
+                TextButton(onClick = { state.navigate(com.travelessence.emailstudio.Screen.Signature) }) {
+                    Icon(Icons.Filled.Badge, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
+                    Text("Edit email signature (contact details, social links, logo)")
+                }
             }
         }
         item {

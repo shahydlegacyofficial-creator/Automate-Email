@@ -15,6 +15,8 @@ from ...core import outlook_data
 from ...core.outlook_data import CollectOptions, CollectResult, FOLDER_CHOICES
 from ...core.recipients import Recipient, is_valid_email
 from ...core.senders import outlook_available
+from ...core import graph
+from ..microsoft import MicrosoftAccountCard
 from ..widgets import Banner, Card, Page, Pill, button, field_label, label, make_table, table_item
 from ..workers import run_task
 
@@ -26,18 +28,22 @@ def _fmt(dt: datetime | None) -> str:
 class OutlookPage(Page):
     def __init__(self, state):
         super().__init__("Outlook data",
-                         "Collect customer addresses and the Travel Essence emails you have sent from the "
-                         "Outlook desktop app - then reuse them as recipients or templates.")
+                         "Collect customer addresses and the Travel Essence emails you have sent - from the "
+                         "Outlook app on this PC or online from Microsoft 365 / the new Outlook.")
         self.state = state
         self.result = CollectResult()
         self._task = None
         self._custom: tuple[str, str, str] | None = None
 
         ok, reason = outlook_available()
-        if not ok:
-            self.content.addWidget(Banner(
-                f"<b>Outlook is not available.</b> {reason} This page needs Windows with the classic "
-                "Microsoft Outlook desktop app (the “new Outlook” app does not allow automation)."))
+        self.banner = Banner(
+            f"<b>The classic Outlook app is not available.</b> {reason} If you use the new Outlook, choose "
+            "<b>Microsoft 365 / new Outlook (online)</b> under Connect to.")
+        self.banner.setVisible(False)
+        self._classic_ok = ok
+        self.content.addWidget(self.banner)
+        self.ms_card = MicrosoftAccountCard(state, "Microsoft 365 / new Outlook connection")
+        self.content.addWidget(self.ms_card)
 
         # ---- source card
         source = Card("Source", "Choose where to read from. Your own addresses are always excluded.")
@@ -45,15 +51,24 @@ class OutlookPage(Page):
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(6)
 
+        self.source_box = QComboBox()
+        self.source_box.addItem("Outlook app on this PC (classic)", "classic")
+        self.source_box.addItem("Microsoft 365 / new Outlook (online)", "graph")
+        self.source_box.setCurrentIndex(max(0, self.source_box.findData(state.settings.get("outlook_source", "classic"))))
+        self.source_box.currentIndexChanged.connect(self._source_changed)
+
         self.store_box = QComboBox()
         self.store_box.addItem("All accounts", "")
         self.store_box.setMinimumWidth(220)
         connect_btn = button("Connect", "refresh")
         connect_btn.setToolTip("Load the accounts configured in Outlook")
         connect_btn.clicked.connect(self.connect_outlook)
-        store_row = QHBoxLayout()
+        self.store_widget = QWidget()
+        store_row = QHBoxLayout(self.store_widget)
+        store_row.setContentsMargins(0, 0, 0, 0)
         store_row.addWidget(self.store_box, 1)
         store_row.addWidget(connect_btn)
+        self.store_caption = field_label("ACCOUNT / MAILBOX")
 
         self.folder_box = QComboBox()
         for key, text in FOLDER_CHOICES:
@@ -76,17 +91,14 @@ class OutlookPage(Page):
         self.max_items.setSingleStep(500)
         self.max_items.setValue(5000)
 
-        fields = [("ACCOUNT / MAILBOX", store_row), ("FOLDER", self.folder_box),
-                  ("FROM DATE", self.date_from), ("TO DATE", self.date_to),
+        fields = [("CONNECT TO", self.source_box), (self.store_caption, self.store_widget),
+                  ("FOLDER", self.folder_box), ("FROM DATE", self.date_from), ("TO DATE", self.date_to),
                   ("SUBJECT CONTAINS", self.subject_filter), ("EXCLUDE ADDRESSES / DOMAINS", self.exclude),
                   ("MAX EMAILS", self.max_items)]
         for i, (caption, widget) in enumerate(fields):
             r, c = divmod(i, 4)
-            grid.addWidget(field_label(caption), r * 2, c)
-            if isinstance(widget, QWidget):
-                grid.addWidget(widget, r * 2 + 1, c)
-            else:
-                grid.addLayout(widget, r * 2 + 1, c)
+            grid.addWidget(caption if isinstance(caption, QWidget) else field_label(caption), r * 2, c)
+            grid.addWidget(widget, r * 2 + 1, c)
         for c in range(4):
             grid.setColumnStretch(c, 1)
         source.add(grid)
@@ -186,8 +198,27 @@ class OutlookPage(Page):
 
         results.add(self.tabs, 1)
         self.content.addWidget(results, 1)
+        self._source_changed()
 
     # ------------------------------------------------------------ outlook
+    def _online(self) -> bool:
+        return self.source_box.currentData() == "graph"
+
+    def _source_changed(self, *_):
+        online = self._online()
+        self.ms_card.setVisible(online)
+        self.banner.setVisible(not online and not self._classic_ok)
+        self.store_caption.setVisible(not online)
+        self.store_widget.setVisible(not online)
+        custom = self.folder_box.findData("custom")
+        item = self.folder_box.model().item(custom)
+        if item is not None:
+            item.setEnabled(not online)
+        if online and self.folder_box.currentData() == "custom":
+            self.folder_box.setCurrentIndex(0)
+        if self.state.settings.get("outlook_source") != self.source_box.currentData():
+            self.state.save_settings({"outlook_source": self.source_box.currentData()})
+
     def connect_outlook(self):
         def done(info):
             current = self.store_box.currentData()
@@ -205,7 +236,7 @@ class OutlookPage(Page):
         self._task = run_task(lambda _ctx: outlook_data.list_accounts(), done, self._error)
 
     def _folder_changed(self):
-        if self.folder_box.currentData() != "custom":
+        if self.folder_box.currentData() != "custom" or self._online():
             return
 
         def done(picked):
@@ -244,10 +275,20 @@ class OutlookPage(Page):
         if self.exclude.text() != self.state.settings.get("outlook_exclude", ""):
             self.state.save_settings({"outlook_exclude": self.exclude.text()})
 
+        if self._online():
+            if not self.ms_card.is_signed_in():
+                QMessageBox.information(self, "Sign in first", "Sign in to Microsoft 365 / new Outlook above "
+                                                               "to read your mailbox online.")
+                return
+            client = self.ms_card.client()
+            work = lambda ctx: graph.collect(client, options, ctx.progress, ctx.cancelled)  # noqa: E731
+        else:
+            work = lambda ctx: outlook_data.collect(options, ctx.progress, ctx.cancelled)  # noqa: E731
+
         self.collect_btn.setEnabled(False)
         self.cancel_btn.setEnabled(True)
         self.progress.setRange(0, 0)
-        self.progress_label.setText("Reading Outlook… this can take a minute for large mailboxes.")
+        self.progress_label.setText("Reading your mailbox… this can take a minute for large mailboxes.")
 
         def progress(current, total, message):
             if total > 0:
@@ -255,8 +296,7 @@ class OutlookPage(Page):
                 self.progress.setValue(min(current, total))
             self.progress_label.setText(message)
 
-        self._task = run_task(lambda ctx: outlook_data.collect(options, ctx.progress, ctx.cancelled),
-                              self._collected, self._error, progress)
+        self._task = run_task(work, self._collected, self._error, progress)
 
     def cancel(self):
         if self._task:
@@ -365,7 +405,12 @@ class OutlookPage(Page):
             self.state.navigate.emit("compose")
 
         self.progress_label.setText("Loading email from Outlook…")
-        self._task = run_task(lambda _ctx: outlook_data.load_message(entry_id, store_id), done, self._error)
+        if store_id == "graph":
+            client = self.ms_card.client()
+            loader = lambda _ctx: graph.load_message(client, entry_id)  # noqa: E731
+        else:
+            loader = lambda _ctx: outlook_data.load_message(entry_id, store_id)  # noqa: E731
+        self._task = run_task(loader, done, self._error)
 
     def _export(self, table, default_name: str):
         if table.rowCount() == 0:

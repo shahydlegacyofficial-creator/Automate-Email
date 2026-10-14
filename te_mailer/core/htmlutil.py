@@ -55,14 +55,18 @@ def body_inner(document: str) -> tuple[str, str]:
     return m.group(2), (style_match.group(1).strip() if style_match else "")
 
 
-def build_email_html(editor_html: str) -> str:
-    """Turn the editor's HTML document into clean, email-client-friendly HTML."""
+def build_email_html(editor_html: str, signature_html: str = "") -> str:
+    """Turn the editor's HTML document into clean, email-client-friendly HTML.
+
+    ``signature_html`` (from :mod:`signature`) is appended below the message.
+    """
     inner, style = body_inner(editor_html)
     style = style or "font-family:'Segoe UI', Arial, sans-serif; font-size:11pt;"
+    signature = f"<br>{signature_html}" if signature_html else ""
     return (
         "<!DOCTYPE html>\n<html><head><meta http-equiv=\"Content-Type\" "
         "content=\"text/html; charset=utf-8\"></head>\n"
-        f"<body><div style=\"{style}\">{inner}</div></body></html>"
+        f"<body><div style=\"{style}\">{inner}</div>{signature}</body></html>"
     )
 
 

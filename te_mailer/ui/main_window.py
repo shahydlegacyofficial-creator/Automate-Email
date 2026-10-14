@@ -19,6 +19,7 @@ from .pages.outlook import OutlookPage
 from .pages.quick_send import QuickSendPage
 from .pages.recipients import RecipientsPage
 from .pages.settings import SettingsPage
+from .pages.signature import SignaturePage
 from .state import AppState
 from .widgets import IconLabel, Toast, label
 
@@ -31,6 +32,7 @@ NAV = [
     ]),
     ("TOOLS", [
         ("quick", "Write & send", "mail"),
+        ("signature", "Signature", "id-card"),
         ("outlook", "Outlook data", "database"),
         ("history", "History", "history"),
         ("settings", "Settings", "settings"),
@@ -64,6 +66,7 @@ class MainWindow(QMainWindow):
             "recipients": RecipientsPage(state),
             "automation": AutomationPage(state),
             "quick": QuickSendPage(state),
+            "signature": SignaturePage(state),
             "outlook": OutlookPage(state),
             "history": HistoryPage(state),
             "settings": SettingsPage(state, self.set_theme),

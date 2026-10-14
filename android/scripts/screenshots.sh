@@ -25,6 +25,8 @@ done
 shot light-more More light
 shot light-quicksend QuickSend light
 shot light-history History light
+shot light-signature Signature light
+shot dark-signature Signature dark
 
 # Start a simulated campaign (10 s interval) and capture it mid-run.
 shot light-automation-start Automation light --ez start_campaign true

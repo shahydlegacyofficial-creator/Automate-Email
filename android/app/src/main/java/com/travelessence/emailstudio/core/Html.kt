@@ -46,7 +46,7 @@ object Html {
         val signature = if (signatureHtml.isNotBlank()) "<br>$signatureHtml" else ""
         return "<!DOCTYPE html>\n<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head>\n" +
-            "<body><div style=\"$BASE_STYLE\">${bodyInner(fragment)}$signature</div></body></html>"
+            "<body><div style=\"$BASE_STYLE\">${bodyInner(fragment)}</div>$signature</body></html>"
     }
 
     /** Replaces embedded data: images with cid: references; returns the new HTML and the images. */

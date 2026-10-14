@@ -13,6 +13,7 @@ from ...core.recipients import EMAIL_FIND_RE, is_valid_email, normalize_email
 from ...core.senders import OutgoingEmail, backend_label
 from ..editor import AttachmentList, EmailEditor
 from ..widgets import Card, Page, button, field_label, label
+from ..signature_assets import signature_html
 from ..workers import run_task
 
 
@@ -131,7 +132,8 @@ class QuickSendPage(Page):
             return
 
         email = OutgoingEmail(to=to, cc=cc, bcc=bcc, subject=self.subject.text().strip(),
-                              html=build_email_html(self.editor.html()), attachments=self.attachments.paths())
+                              html=build_email_html(self.editor.html(), signature_html(self.state.settings)),
+                              attachments=self.attachments.paths())
         sender = self.state.make_sender()
         settings = self.state.settings
 

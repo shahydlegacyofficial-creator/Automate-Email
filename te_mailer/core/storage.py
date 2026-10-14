@@ -36,6 +36,11 @@ DEFAULT_SETTINGS: dict = {
     "smtp_remember_password": True,
     "suppression_list": "",
     "outlook_exclude": "",
+    "ms_client_id": "",            # Microsoft 365 / new Outlook (Microsoft Graph) app registration
+    "ms_tenant": "common",
+    "ms_account": "",
+    "outlook_source": "classic",   # classic (Outlook app on this PC) | graph (Microsoft 365 / new Outlook)
+    "signature": {},               # see core.signature.DEFAULT_SIGNATURE
 }
 
 _lock = threading.RLock()
