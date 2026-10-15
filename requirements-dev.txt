@@ -1,3 +1,4 @@
 -r requirements.txt
 pytest>=8
 aiosmtpd>=1.4
+mcp>=1.23  # tests only: proves the AI assistant server works with the official MCP client

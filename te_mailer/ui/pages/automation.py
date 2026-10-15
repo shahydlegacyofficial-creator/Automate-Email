@@ -194,9 +194,7 @@ class AutomationPage(Page):
             self.refresh_summary()
 
     def _eligible(self):
-        suppression = parse_suppression(self.state.settings.get("suppression_list", ""))
-        eligible = [r for r in self.state.recipients if not is_suppressed(r.email, suppression)]
-        return eligible, len(self.state.recipients) - len(eligible)
+        return self.eligible_from(self.state.recipients)
 
     def refresh_summary(self):
         draft = self.state.draft
@@ -251,6 +249,29 @@ class AutomationPage(Page):
             self.pause_btn.setText("Pause")
             self.pause_btn.setIcon(icon("pause"))
 
+    def readiness_problem(self, subject: str, html: str, attachments: list[str]) -> tuple[str, str] | None:
+        """Why a campaign can't start right now, as (message, page to fix it on), or None."""
+        if self.is_running():
+            return "A campaign is already running. Wait for it to finish or stop it first.", "automation"
+        if not subject.strip() or is_blank_html(html):
+            return "Please write a subject and email content first.", "compose"
+        missing = [a for a in attachments if not os.path.isfile(a)]
+        if missing:
+            return "These attachments can no longer be found:\n\n" + "\n".join(missing), "compose"
+        backend = self.state.settings.get("backend")
+        if backend == "outlook":
+            ok, reason = outlook_available()
+            if not ok:
+                return reason, "settings"
+        if backend == "graph" and not self.state.settings.get("ms_account"):
+            return "Sign in to Microsoft 365 / new Outlook in Settings first.", "settings"
+        return None
+
+    def eligible_from(self, recipients) -> tuple[list, int]:
+        suppression = parse_suppression(self.state.settings.get("suppression_list", ""))
+        eligible = [r for r in recipients if not is_suppressed(r.email, suppression)]
+        return eligible, len(recipients) - len(eligible)
+
     def start(self):
         if self.is_running():
             return
@@ -258,29 +279,16 @@ class AutomationPage(Page):
         subject = draft.get("subject", "").strip()
         html = draft.get("html", "")
         attachments = draft.get("attachments", [])
-        if not subject or is_blank_html(html):
-            QMessageBox.information(self, "Not ready", "Please write a subject and email content first.")
-            self.state.navigate.emit("compose")
+        problem = self.readiness_problem(subject, html, attachments)
+        if problem:
+            QMessageBox.information(self, "Not ready", problem[0])
+            if problem[1] in ("compose", "settings"):
+                self.state.navigate.emit(problem[1])
             return
         eligible, skipped = self._eligible()
         if not eligible:
             QMessageBox.information(self, "Not ready", "Add at least one recipient first.")
             self.state.navigate.emit("recipients")
-            return
-        missing = [a for a in attachments if not os.path.isfile(a)]
-        if missing:
-            QMessageBox.warning(self, "Missing attachment",
-                                "These attachments can no longer be found:\n\n" + "\n".join(missing))
-            return
-        backend = self.state.settings.get("backend")
-        if backend == "outlook":
-            ok, reason = outlook_available()
-            if not ok:
-                QMessageBox.critical(self, "Outlook unavailable", reason)
-                return
-        if backend == "graph" and not self.state.settings.get("ms_account"):
-            QMessageBox.information(self, "Not signed in", "Sign in to Microsoft 365 / new Outlook in Settings first.")
-            self.state.navigate.emit("settings")
             return
 
         interval = self.interval_spin.value()
@@ -295,17 +303,26 @@ class AutomationPage(Page):
         text += "<p>Keep this app (and Outlook) open until the campaign finishes.</p>"
         if QMessageBox.question(self, "Start campaign", text) != QMessageBox.StandardButton.Yes:
             return
-
         if interval != self.state.settings.get("interval_seconds"):
             self.state.save_settings({"interval_seconds": interval})
+        self.launch(subject, html, list(attachments), eligible, interval)
 
+    def launch(self, subject: str, html: str, attachments: list[str], eligible: list, interval: int,
+               started_by: str = "") -> dict:
+        """Start sending without any questions - callers have already checked and confirmed."""
+        backend = self.state.settings.get("backend")
+        count = len(eligible)
+        self.interval_spin.setValue(interval)
         self.total = count
         self.done = 0
         self.failed = 0
         self.interval = interval
+        self.countdown_value = 0
         self.started_at = datetime.now()
         self.session = storage.new_session("campaign", subject, backend, interval, count, attachments)
         self.session["queue"] = [r.to_dict() for r in eligible]
+        if started_by:
+            self.session["started_by"] = started_by
         storage.save_session(self.session)
 
         self.table.setRowCount(0)
@@ -325,7 +342,7 @@ class AutomationPage(Page):
         self.bar.setRange(0, count)
         self.bar.setValue(0)
         self.started_label.setText(self.started_at.strftime("%d %b %Y, %H:%M"))
-        self._update_counts()
+        self.subject_label.setText(subject)
 
         self.worker = CampaignWorker(self.state.make_sender(), self.recipients, subject,
                                      build_email_html(html, signature_html(self.state.settings)), list(attachments), interval,
@@ -342,9 +359,54 @@ class AutomationPage(Page):
         self.worker.finished.connect(self._on_finished)
         self.state.campaign_running = True
         self._set_running(True)
+        self._update_counts()
         self.state_pill.set("Running", "accent")
         self.state.campaign_status.emit("Sending", 0, count)
         self.thread.start()
+        return self.session
+
+    def status(self) -> dict:
+        """A snapshot of the current (or last) campaign for the AI assistant."""
+        running = self.is_running()
+        info: dict = {"running": running}
+        if self.session is None:
+            info["message"] = "No campaign has been started since the app opened."
+            return info
+        sent = self.done - self.failed
+        info.update({
+            "subject": self.session.get("subject", ""),
+            "started": self.session.get("started"),
+            "total": self.total,
+            "processed": self.done,
+            "sent": sent,
+            "failed": self.failed,
+            "remaining": self.total - self.done,
+            "interval_seconds": self.interval,
+            "paused": bool(running and self.worker is not None and self.worker.is_paused),
+            "state": self.state_pill.text(),
+        })
+        if running and info["remaining"] > 0:
+            seconds = self.countdown_value + max(0, info["remaining"] - 1) * self.interval
+            info["estimated_finish"] = (datetime.now() + timedelta(seconds=seconds)).strftime("%H:%M")
+        else:
+            info["finished_status"] = self.session.get("status")
+        failures = [r for r in self.session.get("results", []) if r.get("status") != "sent"][-5:]
+        if failures:
+            info["recent_failures"] = [{"email": r.get("email"), "error": r.get("message", "")} for r in failures]
+        return info
+
+    def pause_campaign(self) -> None:
+        if self.worker and not self.worker.is_paused:
+            self.worker.pause()
+
+    def resume_campaign(self) -> None:
+        if self.worker and self.worker.is_paused:
+            self.worker.resume()
+
+    def stop_campaign(self) -> None:
+        if self.worker:
+            self.worker.stop()
+            self.state_pill.set("Stopping…", "warning")
 
     def toggle_pause(self):
         if not self.worker:
@@ -360,8 +422,7 @@ class AutomationPage(Page):
         if QMessageBox.question(self, "Stop campaign",
                                 "Stop sending? Customers not yet emailed will not receive it. "
                                 "You can re-queue them later from History.") == QMessageBox.StandardButton.Yes:
-            self.worker.stop()
-            self.state_pill.set("Stopping…", "warning")
+            self.stop_campaign()
 
     def shutdown(self, timeout_ms: int = 8000) -> None:
         """Stop the campaign when the app closes."""

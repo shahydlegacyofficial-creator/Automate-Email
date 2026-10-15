@@ -41,6 +41,10 @@ DEFAULT_SETTINGS: dict = {
     "ms_account": "",
     "outlook_source": "classic",   # classic (Outlook app on this PC) | graph (Microsoft 365 / new Outlook)
     "signature": {},               # see core.signature.DEFAULT_SIGNATURE
+    "ai_enabled": False,           # MCP server that lets Legacy AI (or another AI assistant) control the app
+    "ai_port": 8765,
+    "ai_token": "",
+    "ai_approval": "campaigns",    # always | campaigns | never - when to ask in the app before AI sends
 }
 
 _lock = threading.RLock()
@@ -153,6 +157,20 @@ def save_recipients(rows: list[dict]) -> None:
     write_json(data_dir() / "recipients.json", rows)
 
 
+# ---------------------------------------------------------------- saved recipient lists
+def load_lists() -> list[dict]:
+    """Named recipient lists: ``[{"name", "updated", "recipients": [{"email", "name"}]}]``."""
+    data = read_json(data_dir() / "lists.json", [])
+    if not isinstance(data, list):
+        return []
+    return [d for d in data if isinstance(d, dict) and str(d.get("name", "")).strip()
+            and isinstance(d.get("recipients"), list)]
+
+
+def save_lists(lists: list[dict]) -> None:
+    write_json(data_dir() / "lists.json", lists)
+
+
 # ---------------------------------------------------------------- templates
 def load_templates() -> list[dict]:
     data = read_json(data_dir() / "templates.json", [])
@@ -198,7 +216,8 @@ def load_sessions() -> list[dict]:
         data = read_json(path, None)
         if isinstance(data, dict) and "id" in data:
             sessions.append(data)
-    sessions.sort(key=lambda s: s.get("started", ""), reverse=True)
+    # the id carries microseconds, so sessions started within the same second keep their order
+    sessions.sort(key=lambda s: (s.get("started", ""), s.get("id", "")), reverse=True)
     return sessions
 
 

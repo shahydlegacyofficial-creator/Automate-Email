@@ -11,6 +11,8 @@ from PySide6.QtWidgets import (
 from .. import APP_NAME, __version__
 from . import theme
 from .icons import icon
+from .assistant import AssistantService
+from .pages.assistant import AssistantPage
 from .pages.automation import AutomationPage
 from .pages.compose import ComposePage
 from .pages.dashboard import DashboardPage
@@ -35,6 +37,7 @@ NAV = [
         ("signature", "Signature", "id-card"),
         ("outlook", "Outlook data", "database"),
         ("history", "History", "history"),
+        ("assistant", "AI assistant", "bot"),
         ("settings", "Settings", "settings"),
     ]),
 ]
@@ -60,6 +63,7 @@ class MainWindow(QMainWindow):
         self.stack.setObjectName("Pages")
         root_layout.addWidget(self.stack, 1)
 
+        self.assistant = AssistantService(state, self)
         self.pages = {
             "dashboard": DashboardPage(state),
             "compose": ComposePage(state),
@@ -69,6 +73,7 @@ class MainWindow(QMainWindow):
             "signature": SignaturePage(state),
             "outlook": OutlookPage(state),
             "history": HistoryPage(state),
+            "assistant": AssistantPage(state, self.assistant),
             "settings": SettingsPage(state, self.set_theme),
         }
         for page in self.pages.values():
@@ -79,6 +84,7 @@ class MainWindow(QMainWindow):
         state.navigate.connect(self.navigate)
         state.campaign_status.connect(self._campaign_status)
         self.navigate("dashboard")
+        self.assistant.apply_settings()
 
     # ------------------------------------------------------------ sidebar
     def _build_sidebar(self) -> QFrame:
@@ -205,5 +211,6 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
             automation.shutdown()
+        self.assistant.shutdown()
         self.state.flush()
         event.accept()

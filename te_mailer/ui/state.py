@@ -11,6 +11,7 @@ from ..core.senders import BaseSender, create_sender
 
 class AppState(QObject):
     recipients_changed = Signal()
+    lists_changed = Signal()          # saved (named) recipient lists
     draft_changed = Signal()          # emitted when the draft is replaced from outside the composer
     settings_changed = Signal()
     history_changed = Signal()
@@ -77,6 +78,55 @@ class AppState(QObject):
             if r.email == email:
                 r.name = name.strip()
         storage.save_recipients([r.to_dict() for r in self.recipients])
+
+    # ------------------------------------------------------------ saved lists
+    @staticmethod
+    def _list_key(name: str) -> str:
+        return " ".join((name or "").split()).casefold()
+
+    def saved_lists(self) -> list[dict]:
+        return storage.load_lists()
+
+    def find_list(self, name: str) -> dict | None:
+        key = self._list_key(name)
+        return next((d for d in storage.load_lists() if self._list_key(d["name"]) == key), None)
+
+    def list_recipients(self, entry: dict) -> list[Recipient]:
+        rows = [Recipient.from_dict(r) for r in entry.get("recipients", []) if isinstance(r, dict)]
+        return [r for r in rows if is_valid_email(r.email)]
+
+    def save_list(self, name: str, recipients: list[Recipient]) -> dict:
+        """Create or overwrite a named list (matched case-insensitively, original spelling kept)."""
+        from datetime import datetime
+
+        name = " ".join((name or "").split())
+        if not name:
+            raise ValueError("A list needs a name.")
+        lists = storage.load_lists()
+        key = self._list_key(name)
+        entry = {"name": name, "updated": datetime.now().isoformat(timespec="seconds"),
+                 "recipients": [r.to_dict() for r in recipients]}
+        for i, existing in enumerate(lists):
+            if self._list_key(existing["name"]) == key:
+                entry["name"] = existing["name"]
+                lists[i] = entry
+                break
+        else:
+            lists.append(entry)
+        lists.sort(key=lambda d: d["name"].casefold())
+        storage.save_lists(lists)
+        self.lists_changed.emit()
+        return entry
+
+    def delete_list(self, name: str) -> bool:
+        key = self._list_key(name)
+        lists = storage.load_lists()
+        kept = [d for d in lists if self._list_key(d["name"]) != key]
+        if len(kept) == len(lists):
+            return False
+        storage.save_lists(kept)
+        self.lists_changed.emit()
+        return True
 
     # ------------------------------------------------------------ settings
     def save_settings(self, new_settings: dict) -> None:

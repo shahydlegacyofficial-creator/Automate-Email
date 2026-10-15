@@ -31,6 +31,9 @@ Also included:
 - **Auto-pause** after 3 failures in a row (for example if Outlook was closed).
 - Optional **Outlook signature** and a choice of which **Outlook account** to send from.
 - **SMTP** sending as an alternative, and a **Simulation mode** for practising without sending anything.
+- **Saved lists**: name a recipient list (e.g. “VIP guests”) on the Recipients page and load it again later.
+- **AI assistant (MCP)**: Legacy AI, or any AI app that speaks the Model Context Protocol, can write the
+  email, manage lists, start/pause/stop campaigns and report progress. See [AI assistant](#ai-assistant-legacy-ai--mcp).
 
 | Compose | Automation in progress |
 |---|---|
@@ -83,6 +86,28 @@ If [Inno Setup](https://jrsoftware.org/isinfo.php) is installed, the installer i
 4. **Automation**: check the summary and the time between emails (60 seconds by default), then press **Start sending**.
    Keep the app and Outlook open until it finishes. Closing the app stops the campaign, and you can
    re-queue the remaining customers from **History**.
+
+## AI assistant (Legacy AI / MCP)
+
+**AI assistant** in the sidebar → tick **Allow Legacy AI to control this app**. The app then runs a small
+[MCP](https://modelcontextprotocol.io) server at `http://127.0.0.1:8765/mcp` (this PC only, bearer
+token required) and writes its address and token to `%APPDATA%\TravelEssenceEmailStudio\mcp.json`.
+**Legacy AI v3.23+ reads that file and connects by herself.** Any other MCP client can connect with the
+address and token shown on the page (Streamable HTTP, protocol 2024-11-05 to 2025-11-25).
+
+| Tool | What it does |
+|---|---|
+| `get_status` | Sending method, current draft, saved lists, campaign state, anything blocking a campaign |
+| `list_recipient_lists`, `get_recipient_list`, `save_recipient_list` | Read and build named lists (`current` = the Recipients page) |
+| `list_templates`, `compose_email`, `preview_email` | Write the campaign email into Compose (plain text or HTML, `{first_name}`, attachments) and preview it per customer |
+| `send_test_email` | Send the draft to your test address |
+| `start_campaign`, `get_campaign_status`, `control_campaign` | Run the normal one-customer-at-a-time automation on a list; pause / resume / stop |
+| `send_email` | A one-off email to up to 5 people |
+| `get_history` | Recent sessions and results |
+
+**Approval.** Legacy AI asks you before anything is sent. The app can add a second check on its own
+screen: *always*, *campaigns only* (default) or *never*. Unanswered requests are declined after 2 minutes,
+and every AI action is listed under **What the AI did**.
 
 ### Outlook requirements and tips
 

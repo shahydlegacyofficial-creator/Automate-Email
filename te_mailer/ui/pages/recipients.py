@@ -5,8 +5,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QGuiApplication
 from PySide6.QtWidgets import (
-    QAbstractItemView, QFileDialog, QHBoxLayout, QHeaderView, QLineEdit, QMessageBox,
-    QPlainTextEdit, QTableWidgetItem, QWidget, QVBoxLayout,
+    QAbstractItemView, QComboBox, QFileDialog, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit,
+    QMessageBox, QPlainTextEdit, QTableWidgetItem, QWidget, QVBoxLayout,
 )
 
 from ...core.recipients import (
@@ -68,6 +68,28 @@ class RecipientsPage(Page):
         left_layout = QVBoxLayout(left)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.addWidget(add_card)
+
+        lists_card = Card("Saved lists", "Name a list (e.g. “VIP guests”) to reuse it later - "
+                                         "Legacy AI can send to saved lists by name.")
+        self.lists_box = QComboBox()
+        self.lists_box.setPlaceholderText("No saved lists yet")
+        lists_card.add(self.lists_box)
+        lists_row = QHBoxLayout()
+        lists_row.setSpacing(6)
+        load_btn = button("Load", "upload")
+        load_btn.setToolTip("Replace the recipient list with the saved list")
+        load_btn.clicked.connect(self.load_saved_list)
+        save_btn = button("Save as…", "save", "primary")
+        save_btn.setToolTip("Save the recipient list under a name")
+        save_btn.clicked.connect(self.save_as_list)
+        delete_btn = button("", "trash", "ghost")
+        delete_btn.setToolTip("Delete the selected saved list")
+        delete_btn.clicked.connect(self.delete_saved_list)
+        lists_row.addWidget(load_btn)
+        lists_row.addWidget(save_btn, 1)
+        lists_row.addWidget(delete_btn)
+        lists_card.add(lists_row)
+        left_layout.addWidget(lists_card)
         left.setFixedWidth(380)
         body.addWidget(left)
 
@@ -107,7 +129,58 @@ class RecipientsPage(Page):
 
         state.recipients_changed.connect(self.populate)
         state.settings_changed.connect(self.populate)
+        state.lists_changed.connect(self.reload_lists)
         self.populate()
+        self.reload_lists()
+
+    # ------------------------------------------------------------ saved lists
+    def reload_lists(self):
+        current = self.lists_box.currentData()
+        self.lists_box.clear()
+        for entry in self.state.saved_lists():
+            count = len(entry["recipients"])
+            self.lists_box.addItem(f"{entry['name']}  ·  {count:,} recipient{'s' if count != 1 else ''}",
+                                   entry["name"])
+        index = self.lists_box.findData(current)
+        self.lists_box.setCurrentIndex(index if index >= 0 else (0 if self.lists_box.count() else -1))
+
+    def load_saved_list(self):
+        name = self.lists_box.currentData()
+        entry = self.state.find_list(name) if name else None
+        if entry is None:
+            QMessageBox.information(self, "Saved lists", "Choose a saved list first.")
+            return
+        people = self.state.list_recipients(entry)
+        if self.state.recipients and QMessageBox.question(
+                self, "Load list", f"Replace the current {len(self.state.recipients):,} recipients with "
+                                   f"“{entry['name']}” ({len(people):,})?") != QMessageBox.StandardButton.Yes:
+            return
+        self.state.set_recipients(people)
+        self.state.notify(f"Loaded “{entry['name']}”", "success")
+
+    def save_as_list(self):
+        if not self.state.recipients:
+            QMessageBox.information(self, "Save list", "Add some recipients first.")
+            return
+        name, ok = QInputDialog.getText(self, "Save list", "Name for this list:",
+                                        text=self.lists_box.currentData() or "")
+        name = " ".join(name.split())
+        if not ok or not name:
+            return
+        if self.state.find_list(name) and QMessageBox.question(
+                self, "Save list", f"Replace the saved list “{name}”?") != QMessageBox.StandardButton.Yes:
+            return
+        entry = self.state.save_list(name, self.state.recipients)
+        self.lists_box.setCurrentIndex(self.lists_box.findData(entry["name"]))
+        self.state.notify(f"Saved “{entry['name']}” ({len(entry['recipients']):,} recipients)", "success")
+
+    def delete_saved_list(self):
+        name = self.lists_box.currentData()
+        if not name:
+            return
+        if QMessageBox.question(self, "Delete list", f"Delete the saved list “{name}”? "
+                                "The recipients on this page are not affected.") == QMessageBox.StandardButton.Yes:
+            self.state.delete_list(name)
 
     # ------------------------------------------------------------ list
     def populate(self):
