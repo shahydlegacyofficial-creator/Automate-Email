@@ -48,7 +48,7 @@ APPROVAL_CHOICES = {
 }
 
 INSTRUCTIONS = (
-    "Travel Essence Email Studio sends email campaigns for Travel Essence Maldives, one customer at a "
+    "Legacy AI Email Studio sends email campaigns for Travel Essence Maldives, one customer at a "
     "time with a pause between emails (default 60 seconds). Typical flow: get_status -> "
     "list_recipient_lists -> compose_email -> preview_email -> start_campaign -> get_campaign_status. "
     "Use {first_name}, {name}, {last_name} or {email} in the subject or body to personalise each email. "
@@ -133,7 +133,7 @@ class AssistantService(QObject):
         self._server_key: tuple | None = None
         self.status = ("off", "Off")
         self.log: deque[dict] = deque(maxlen=200)
-        self.dispatcher = McpDispatcher(self._tools(), "travel-essence-email-studio", __version__,
+        self.dispatcher = McpDispatcher(self._tools(), "legacy-ai-email-studio", __version__,
                                         title=APP_NAME, instructions=INSTRUCTIONS, on_call=self._record)
         state.settings_changed.connect(self.apply_settings)
 

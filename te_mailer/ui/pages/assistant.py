@@ -53,7 +53,7 @@ class AssistantPage(Page):
         conn.add(self.status_text)
         conn.add(label("<b>Legacy AI connects by itself</b> (Legacy v3.23 or newer): keep this app open, or "
                        "ask Legacy to “open Email Studio”. Her Tool armory then lists it as "
-                       "<i>Email Studio</i>.", "Hint", wrap=True))
+                       "<i>Legacy AI Email Studio</i>.", "Hint", wrap=True))
         conn.add(divider())
         conn.add(field_label("FOR OTHER AI APPS - ADD AN MCP CONNECTION WITH"))
         url_row = QHBoxLayout()

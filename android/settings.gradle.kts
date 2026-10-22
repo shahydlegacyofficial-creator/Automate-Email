@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TravelEssenceEmailStudio"
+rootProject.name = "LegacyAIEmailStudio"
 include(":app")

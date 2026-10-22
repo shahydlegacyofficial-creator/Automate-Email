@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         brand.addWidget(logo)
         names = QVBoxLayout()
         names.setSpacing(0)
-        names.addWidget(label("Travel Essence", "BrandTitle"))
+        names.addWidget(label("Legacy AI", "BrandTitle"))
         names.addWidget(label("EMAIL STUDIO", "BrandSubtitle"))
         brand.addLayout(names, 1)
         col.addLayout(brand)

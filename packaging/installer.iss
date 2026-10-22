@@ -2,10 +2,11 @@
 ;   iscc /DAppVersion=1.0.0 packaging\installer.iss
 
 #ifndef AppVersion
-  #define AppVersion "1.2.0"
+  #define AppVersion "1.3.0"
 #endif
-#define AppName "Travel Essence Email Studio"
-#define AppExe "TravelEssenceEmailStudio.exe"
+#define AppName "Legacy AI Email Studio"
+#define OldName "Travel Essence Email Studio"
+#define AppExe "LegacyAIEmailStudio.exe"
 
 [Setup]
 AppId={{8F0E2C9A-5B1D-4C3E-9A7F-2D6B1E4C8A10}
@@ -16,7 +17,7 @@ DefaultDirName={autopf}\{#AppName}
 DefaultGroupName=Travel Essence
 DisableProgramGroupPage=yes
 OutputDir=..\dist
-OutputBaseFilename=TravelEssenceEmailStudio-Setup
+OutputBaseFilename=LegacyAIEmailStudio-Setup
 SetupIconFile=..\assets\icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
 Compression=lzma2
@@ -29,6 +30,14 @@ ArchitecturesInstallIn64BitMode=x64
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+; Same AppId as before, so this upgrades the old "Travel Essence Email Studio" install in place
+; (same folder, settings untouched). Remove the old exe and shortcuts it left behind.
+[InstallDelete]
+Type: files; Name: "{app}\TravelEssenceEmailStudio.exe"
+Type: files; Name: "{group}\{#OldName}.lnk"
+Type: files; Name: "{autoprograms}\{#OldName}.lnk"
+Type: files; Name: "{autodesktop}\{#OldName}.lnk"
 
 [Files]
 Source: "..\dist\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion

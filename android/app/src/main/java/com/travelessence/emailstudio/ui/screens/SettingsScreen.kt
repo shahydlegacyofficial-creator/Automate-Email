@@ -215,7 +215,7 @@ fun SettingsScreen(app: App) {
         item { PrimaryButton("Save settings", Icons.Filled.Save, Modifier.fillMaxWidth()) { save() } }
         item {
             SectionCard(title = "About") {
-                Text("Travel Essence Email Studio for Android v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
+                Text("Legacy AI Email Studio for Android v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
                 Text("Settings, drafts and history are stored privately on this phone. Passwords and sign-in tokens are encrypted with the Android Keystore.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

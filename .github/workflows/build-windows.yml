@@ -50,14 +50,14 @@ jobs:
         run: pip install -r requirements-build.txt
 
       - name: Build executable
-        run: pyinstaller --noconfirm --clean packaging/TravelEssenceEmailStudio.spec
+        run: pyinstaller --noconfirm --clean packaging/LegacyAIEmailStudio.spec
 
       - name: Smoke test - launch the exe
         shell: pwsh
         run: |
           $report = Join-Path $env:RUNNER_TEMP "smoke.txt"
           $env:TE_SMOKE_TEST = $report
-          $p = Start-Process -FilePath "dist\TravelEssenceEmailStudio.exe" -PassThru
+          $p = Start-Process -FilePath "dist\LegacyAIEmailStudio.exe" -PassThru
           if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "App did not exit within 2 minutes" }
           if ($p.ExitCode -ne 0) { throw "App exited with code $($p.ExitCode)" }
           Get-Content $report
@@ -75,10 +75,10 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: TravelEssenceEmailStudio-windows
+          name: LegacyAIEmailStudio-windows
           path: |
-            dist/TravelEssenceEmailStudio.exe
-            dist/TravelEssenceEmailStudio-Setup.exe
+            dist/LegacyAIEmailStudio.exe
+            dist/LegacyAIEmailStudio-Setup.exe
           if-no-files-found: error
 
       - name: Publish release
@@ -89,11 +89,11 @@ jobs:
         with:
           tag_name: ${{ inputs.release_tag || github.ref_name }}
           target_commitish: ${{ github.sha }}
-          name: Travel Essence Email Studio ${{ inputs.release_tag || github.ref_name }}
+          name: Legacy AI Email Studio ${{ inputs.release_tag || github.ref_name }}
           body_path: RELEASE_NOTES.md
           files: |
-            dist/TravelEssenceEmailStudio.exe
-            dist/TravelEssenceEmailStudio-Setup.exe
+            dist/LegacyAIEmailStudio.exe
+            dist/LegacyAIEmailStudio-Setup.exe
       - name: Wait before retrying release upload
         if: steps.publish.outcome == 'failure'
         run: sleep 45
@@ -103,8 +103,8 @@ jobs:
         with:
           tag_name: ${{ inputs.release_tag || github.ref_name }}
           target_commitish: ${{ github.sha }}
-          name: Travel Essence Email Studio ${{ inputs.release_tag || github.ref_name }}
+          name: Legacy AI Email Studio ${{ inputs.release_tag || github.ref_name }}
           body_path: RELEASE_NOTES.md
           files: |
-            dist/TravelEssenceEmailStudio.exe
-            dist/TravelEssenceEmailStudio-Setup.exe
+            dist/LegacyAIEmailStudio.exe
+            dist/LegacyAIEmailStudio-Setup.exe

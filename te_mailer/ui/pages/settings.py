@@ -184,7 +184,7 @@ class SettingsPage(Page):
         right.addWidget(appearance)
 
         about = Card("About")
-        about.add(label(f"Travel Essence Email Studio v{__version__}<br>"
+        about.add(label(f"Legacy AI Email Studio v{__version__}<br>"
                         f"Data folder: {storage.data_dir()}", "Hint", wrap=True))
         right.addWidget(about)
         right.addStretch(1)

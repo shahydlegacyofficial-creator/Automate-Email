@@ -1,5 +1,5 @@
 # PyInstaller build spec - produces a single, self-contained Windows executable.
-#   pyinstaller --noconfirm --clean packaging/TravelEssenceEmailStudio.spec
+#   pyinstaller --noconfirm --clean packaging/LegacyAIEmailStudio.spec
 import os
 
 ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
@@ -31,7 +31,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="TravelEssenceEmailStudio",
+    name="LegacyAIEmailStudio",
     console=False,
     icon=os.path.join(ROOT, "assets", "icon.ico"),
     version=os.path.join(ROOT, "packaging", "version_info.txt"),

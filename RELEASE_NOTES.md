@@ -1,4 +1,9 @@
-Email automation for **Travel Essence**: write an email once, then the app sends it to each customer one at a time, one minute apart.
+**Legacy AI Email Studio** - email automation for **Travel Essence**: write an email once, then the app sends it to each customer one at a time, one minute apart.
+
+## What's new in 1.3.0
+- **New name: Legacy AI Email Studio** (was Travel Essence Email Studio, and Travel Essence Mail on Android). Every feature from 1.2.0 is unchanged: campaigns, saved lists, the signature, Microsoft 365 / new Outlook, and Legacy AI control.
+- **Upgrading keeps everything.** The installer updates your existing install in place and removes the old shortcuts. Your settings, lists, templates, history and the Legacy AI connection stay as they are. The Android app installs over the old one.
+- The files are now `LegacyAIEmailStudio-Setup.exe`, `LegacyAIEmailStudio.exe` and `LegacyAIEmailStudio.apk`.
 
 ## What's new in 1.2.0
 - **Legacy AI can run your email campaigns (Windows).** New **AI assistant** page: tick *Allow Legacy AI to control this app* and Legacy (v3.23 or newer) connects by herself. Ask her to write an offer, build or pick a customer list, send a test, start the campaign, and tell you how it's going. She works through the same pages you use, so her campaign shows on **Automation** with its progress bar.
@@ -15,9 +20,9 @@ Email automation for **Travel Essence**: write an email once, then the app sends
 
 | File | Platform | What it is |
 |---|---|---|
-| `TravelEssenceEmailStudio-Setup.exe` | Windows 10/11 | Installer with Start-menu and desktop shortcuts (recommended) |
-| `TravelEssenceEmailStudio.exe` | Windows 10/11 | Portable app: no install, just double-click |
-| `TravelEssenceMail.apk` | Android 8.0+ | Android app: open the file on your phone and tap **Install** |
+| `LegacyAIEmailStudio-Setup.exe` | Windows 10/11 | Installer with Start-menu and desktop shortcuts (recommended) |
+| `LegacyAIEmailStudio.exe` | Windows 10/11 | Portable app: no install, just double-click |
+| `LegacyAIEmailStudio.apk` | Android 8.0+ | Android app: open the file on your phone and tap **Install** |
 
 > Windows SmartScreen and Android Play Protect may warn about an unknown app, because the files aren't code-signed or from an app store. Choose **More info → Run anyway** (Windows) or **Install anyway** (Android).
 

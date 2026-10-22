@@ -129,7 +129,7 @@ fun AppRoot(app: App, start: Screen) {
                             ) { Icon(Icons.Filled.Flight, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
                             Spacer(Modifier.width(10.dp))
                             Column {
-                                Text("Travel Essence", style = MaterialTheme.typography.titleMedium)
+                                Text("Legacy AI Email Studio", style = MaterialTheme.typography.titleMedium)
                                 Text(screen.title, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }

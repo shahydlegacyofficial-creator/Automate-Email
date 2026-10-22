@@ -1,6 +1,6 @@
-# Travel Essence Mail for Android
+# Legacy AI Email Studio for Android
 
-This is the Android version of Travel Essence Email Studio. It has the same features as the Windows
+This is the Android version of Legacy AI Email Studio (formerly Travel Essence Mail). It has the same features as the Windows
 app, in a native Kotlin / Jetpack Compose app for phones and tablets running Android 8.0 or later.
 
 ## Download
@@ -8,7 +8,7 @@ app, in a native Kotlin / Jetpack Compose app for phones and tablets running And
 Every push that changes `android/` is built by GitHub Actions (`.github/workflows/build-android.yml`):
 
 1. Open the repository on GitHub, then **Actions → Build Android app**, and open the latest successful run.
-2. Download the **TravelEssenceMail-android** artifact and unzip it to get `TravelEssenceMail.apk`.
+2. Download the **LegacyAIEmailStudio-android** artifact and unzip it to get `LegacyAIEmailStudio.apk`.
 3. Copy the APK to the phone and open it. Android asks once to allow installs from that app
    (for example Files or Chrome). Allow it, then tap **Install**.
 
@@ -39,7 +39,7 @@ This needs a **one-time setup** in Microsoft Entra (Azure AD). It's free and tak
 your IT admin:
 
 1. Go to <https://entra.microsoft.com> → **Applications → App registrations → New registration**.
-   - Name: `Travel Essence Mail`
+   - Name: `Legacy AI Email Studio`
    - Supported account types: *Accounts in any organizational directory and personal Microsoft accounts*
      (or *this organizational directory only* if you only use your company tenant).
    - Redirect URI: leave empty. Click **Register**.

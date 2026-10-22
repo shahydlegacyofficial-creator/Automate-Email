@@ -272,7 +272,7 @@ class _Handler(BaseHTTPRequestHandler):
         if not token or not hmac.compare_digest(token.encode(), self.server.token.encode()):
             self._send(401, {"error": "Missing or wrong access token. Copy it from the app's "
                                       "AI assistant page."},
-                       {"WWW-Authenticate": 'Bearer realm="Travel Essence Email Studio"'})
+                       {"WWW-Authenticate": 'Bearer realm="Legacy AI Email Studio"'})
             return False
         return True
 

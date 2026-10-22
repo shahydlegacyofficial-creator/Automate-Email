@@ -1,4 +1,6 @@
-# Travel Essence Email Studio
+# Legacy AI Email Studio
+
+*(formerly Travel Essence Email Studio)*
 
 A native Windows desktop app that sends Travel Essence emails **one customer at a time,
 one minute apart**. It works through the Microsoft Outlook app already on your PC, so every
@@ -60,9 +62,9 @@ Every push is built on a Windows machine by GitHub Actions
 (`.github/workflows/build-windows.yml`). The build runs the tests, builds the exe and launches it as a check.
 
 1. Open the repository on GitHub, then **Actions → Build Windows app**, and open the latest successful run.
-2. Download the **TravelEssenceEmailStudio-windows** artifact (a zip). It contains:
-   - `TravelEssenceEmailStudio.exe`: portable, double-click to run.
-   - `TravelEssenceEmailStudio-Setup.exe`: installer with Start-menu and desktop shortcuts.
+2. Download the **LegacyAIEmailStudio-windows** artifact (a zip). It contains:
+   - `LegacyAIEmailStudio.exe`: portable, double-click to run.
+   - `LegacyAIEmailStudio-Setup.exe`: installer with Start-menu and desktop shortcuts.
 
 To publish a permanent download on the **Releases** page, push a version tag:
 `git tag v1.0.0 && git push origin v1.0.0`.
@@ -73,7 +75,7 @@ To publish a permanent download on the **Releases** page, push a version tag:
 ### Build it yourself on Windows
 
 Install Python 3.10+ from python.org, then double-click `build.bat`
-(or run it from a terminal). The app is written to `dist\TravelEssenceEmailStudio.exe`.
+(or run it from a terminal). The app is written to `dist\LegacyAIEmailStudio.exe`.
 If [Inno Setup](https://jrsoftware.org/isinfo.php) is installed, the installer is built too.
 
 ## Using it
@@ -105,6 +107,8 @@ address and token shown on the page (Streamable HTTP, protocol 2024-11-05 to 202
 | `send_email` | A one-off email to up to 5 people |
 | `get_history` | Recent sessions and results |
 
+![AI assistant](docs/screenshots/ai-assistant.png)
+
 **Approval.** Legacy AI asks you before anything is sent. The app can add a second check on its own
 screen: *always*, *campaigns only* (default) or *never*. Unanswered requests are declined after 2 minutes,
 and every AI action is listed under **What the AI did**.
@@ -123,8 +127,9 @@ and every AI action is listed under **What the AI did**.
 
 ### Where data is stored
 
-Settings, the current draft, recipients, templates and history are saved as JSON files in
-`%APPDATA%\TravelEssenceEmailStudio`. Use **History → Open data folder** to open it. SMTP passwords
+Settings, the current draft, recipients, saved lists, templates and history are saved as JSON files in
+`%APPDATA%\TravelEssenceEmailStudio` (the folder keeps its original name, so upgrading from
+Travel Essence Email Studio keeps everything). Use **History → Open data folder** to open it. SMTP passwords
 are stored in Windows Credential Manager, never in plain files.
 
 ## Development

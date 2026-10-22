@@ -1,4 +1,4 @@
-"""Launch Travel Essence Email Studio."""
+"""Launch Legacy AI Email Studio."""
 
 import sys
 
