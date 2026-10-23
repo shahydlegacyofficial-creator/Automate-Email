@@ -1,0 +1,10 @@
+server: {'name': 'legacy-ai-email-studio-android', 'version': '1.5.0', 'title': 'Legacy AI Email Studio'} protocol 2025-06-18
+tools: get_status, get_recipients, add_recipients, remove_recipients, list_templates, compose_email, preview_email, send_test_email, start_campaign, get_campaign_status, control_campaign, send_email, get_history
+ok  get_status: {     "app": "Legacy AI Email Studio 1.5.0 (Android)",     "sending_via": "Simulation mode (no emails are sent)",     "simulation_mode": true,     "test_email":
+ok  add_recipients: {     "added": 2,     "duplicates_skipped": 0,     "invalid_skipped": [],     "total": 8 }
+ok  compose_email: {     "subject": "Hello {first_name}",     "body_preview": "Dear {first_name},\n\nA note from CI.",     "next": "Use preview_email or send_test_email to check i
+ok  preview_email: {     "to": "ada@example.com",     "subject": "Hello Ada",     "body": "Dear Ada,\n\nA note from CI.",     "attachments": [],     "note": "The signature is adde
+ok  send_test_email: {     "sent": true,     "to": [         "hello@northwind.example"     ],     "cc": [],     "subject": "[TEST] Hello Valued Customer",     "via": "Simulation mod
+ERR start_campaign: Android has one recipient list ('current'). Use add_recipients to build it.
+ok  get_history: {     "sessions": [         {             "kind": "manual",             "started": "2026-10-23T21:49:46",             "finished": "2026-10-23T21:49:46",        
+AGENT CHECK PASSED
