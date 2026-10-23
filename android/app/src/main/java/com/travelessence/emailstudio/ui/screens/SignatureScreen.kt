@@ -36,8 +36,8 @@ import java.io.File
 
 private val ACCENTS = listOf("#1E88E5", "#0B7A8F", "#14B8C9", "#16A34A", "#E0A526", "#EA580C", "#DC2626", "#7C3AED", "#111827")
 private val SOCIAL_HINTS = mapOf(
-    "facebook" to "travelessence", "instagram" to "@travelessence", "whatsapp" to "+960 7978580",
-    "tiktok" to "@travelessence", "linkedin" to "travel-essence", "youtube" to "@travelessence", "x" to "@travelessence",
+    "facebook" to "yourpage", "instagram" to "@yourbusiness", "whatsapp" to "+1 555 010 2030",
+    "tiktok" to "@yourbusiness", "linkedin" to "your-company", "youtube" to "@yourchannel", "x" to "@yourbusiness",
 )
 
 @Composable
@@ -57,7 +57,7 @@ fun SignatureScreen(app: App) {
         val sig = withContext(Dispatchers.IO) { SignatureAssets.html(context, cfg) }
         preview = "<!DOCTYPE html><html><body style=\"margin:12px;background:#FFFFFF\">" +
             "<p style=\"font-family:Calibri,Arial;font-size:11pt;color:#1F2937\">Dear Sarah,<br><br>" +
-            "Thank you for choosing Travel Essence…<br><br>Kind regards,</p>$sig</body></html>"
+            "Thank you for getting in touch…<br><br>Kind regards,</p>$sig</body></html>"
     }
 
     val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -75,7 +75,7 @@ fun SignatureScreen(app: App) {
     }
 
     Page {
-        item { PageHeader("Email signature", "Your Travel Essence contact details, social links and logo - added below every email.") }
+        item { PageHeader("Email signature", "Your contact details, social links and logo - added below every email.") }
         item {
             SectionCard(title = "Preview", subtitle = "How the signature appears under your emails.") {
                 HtmlView(preview, Modifier.fillMaxWidth().height(330.dp))
@@ -160,15 +160,16 @@ fun SignatureScreen(app: App) {
         }
         item {
             TextButton(onClick = { confirmReset = true }) {
-                Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Reset to Travel Essence details")
+                Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text("Reset style")
             }
         }
     }
 
     if (confirmReset) {
-        ConfirmDialog("Reset signature", "Restore the Travel Essence contact details and style? Your logo and social links are kept.",
+        ConfirmDialog("Reset style", "Go back to the default colours and layout? Your details, logo and social links are kept.",
             "Reset", { confirmReset = false }) {
-            cfg = SignatureConfig(logoPath = cfg.logoPath, logoWidth = cfg.logoWidth, socials = cfg.socials)
+            val d = SignatureConfig()
+            cfg = cfg.copy(enabled = d.enabled, theme = d.theme, accent = d.accent, logoWidth = d.logoWidth)
         }
     }
 }

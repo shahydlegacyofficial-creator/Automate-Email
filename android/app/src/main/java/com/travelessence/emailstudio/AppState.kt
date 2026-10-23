@@ -31,6 +31,7 @@ enum class Screen(val title: String) {
     Signature("Email signature"),
     Outlook("Outlook data"),
     History("History"),
+    Agents("AI agents"),
     Settings("Settings"),
 }
 
@@ -127,8 +128,34 @@ class AppState(context: Context) {
         override fun save(value: String?) = secrets.put("ms_tokens", value)
     }
 
+    /** The Microsoft app registration to sign in with: the user's own, else the one built into this release. */
+    fun msClientId(s: Settings = _settings.value): String = s.msClientId.trim().ifEmpty { BuildConfig.MS_CLIENT_ID.trim() }
+
     fun graphClient(s: Settings = _settings.value): GraphClient? =
-        s.msClientId.trim().takeIf { it.isNotEmpty() }?.let { GraphClient(it, s.msTenant.trim(), tokenStore) }
+        msClientId(s).takeIf { it.isNotEmpty() }?.let { GraphClient(it, s.msTenant.trim().ifEmpty { "common" }, tokenStore) }
 
     fun makeSender(): MailSender = createSender(_settings.value, smtpPassword, graphClient())
+
+    // ---------------------------------------------------------------- campaign readiness (screen + AI agents)
+    /** Recipients that will really be emailed (do-not-email list removed) and how many were skipped. */
+    fun eligible(list: List<Recipient> = _recipients.value): Pair<List<Recipient>, Int> {
+        val suppression = Recipients.parseSuppression(_settings.value.suppressionList)
+        val keep = list.filter { !Recipients.isSuppressed(it.email, suppression) }
+        return keep to (list.size - keep.size)
+    }
+
+    /** Why a campaign can't start now, or null. */
+    fun campaignProblem(draft: Draft = _draft.value, eligibleCount: Int = eligible().first.size): String? {
+        val s = _settings.value
+        return when {
+            draft.subject.isBlank() || com.travelessence.emailstudio.core.Html.isBlank(draft.html) ->
+                "Please write a subject and email content first."
+            eligibleCount == 0 -> "Add at least one recipient first."
+            draft.attachments.any { !File(it.path).isFile } -> "An attachment can no longer be found - remove it and add it again."
+            s.backend == "microsoft" && graphClient()?.isSignedIn != true ->
+                "Sign in to Microsoft 365 / Outlook in Settings, or choose another sending method."
+            s.backend == "smtp" && s.smtpHost.isBlank() -> "Set up your SMTP server in Settings first."
+            else -> null
+        }
+    }
 }

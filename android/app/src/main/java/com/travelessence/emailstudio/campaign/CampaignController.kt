@@ -86,7 +86,13 @@ class CampaignController(private val context: Context, private val app: AppState
             app.notify(summary)
             notifyFinished(summary)
         }
-        ContextCompat.startForegroundService(context, Intent(context, CampaignService::class.java))
+        try {
+            ContextCompat.startForegroundService(context, Intent(context, CampaignService::class.java))
+        } catch (e: Exception) {
+            // Android refuses a foreground service when the app is not on screen (Android 12+). The campaign
+            // still runs; it just has no progress notification and may be paused by the system.
+            app.notify("Open the app to keep the campaign running in the background.")
+        }
     }
 
     fun pause() = engine?.pause()
@@ -105,7 +111,7 @@ class CampaignController(private val context: Context, private val app: AppState
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE)
         val n = NotificationCompat.Builder(context, CHANNEL_DONE)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Travel Essence campaign")
+            .setContentTitle("Email campaign")
             .setContentText(text)
             .setContentIntent(open)
             .setAutoCancel(true)

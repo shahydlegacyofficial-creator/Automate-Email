@@ -140,7 +140,7 @@ private fun StepRow(number: Int, title: String, text: String, icon: ImageVector,
 fun MoreScreen(app: App, open: (Screen) -> Unit) {
     val settings by app.state.settings.collectAsStateWithLifecycle()
     Page {
-        item { PageHeader("More tools", "Manual sending, Outlook data, history and settings.") }
+        item { PageHeader("More tools", "Manual sending, mailbox data, history, AI agents and settings.") }
         item {
             SectionCard {
                 MoreRow(Icons.Filled.Mail, "Write & send", "Compose a one-off email and send it now") { open(Screen.QuickSend) }
@@ -150,6 +150,8 @@ fun MoreScreen(app: App, open: (Screen) -> Unit) {
                 MoreRow(Icons.Filled.Storage, "Outlook data", "Collect customers and past emails from your mailbox") { open(Screen.Outlook) }
                 HorizontalDivider(color = LocalTones.current.border)
                 MoreRow(Icons.Filled.History, "History", "Every campaign with per-customer results") { open(Screen.History) }
+                HorizontalDivider(color = LocalTones.current.border)
+                MoreRow(Icons.Filled.SmartToy, "AI agents", "Let Claude or your own AI agent send email with your approval") { open(Screen.Agents) }
                 HorizontalDivider(color = LocalTones.current.border)
                 MoreRow(Icons.Filled.Settings, "Settings", "Sending method, sign-in, defaults, theme") { open(Screen.Settings) }
             }

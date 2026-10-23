@@ -11,10 +11,17 @@ import org.junit.Test
 /** Mirrors tests/test_signature.py so both apps produce the same signature. */
 class SignatureTest {
     private val icons: (String, String) -> String = { kind, name -> "https://icons.test/$kind/$name.png" }
+    private val sample = SignatureConfig(email = "sales.marketing@travelessence.mv", phone = "+960 7978580",
+        address = "H.Finivairoalhi, 2nd Floor\nRaivilla Magu, Henveiru", website = "travelessence.mv")
 
     @Test
-    fun defaultsContainTravelEssenceDetails() {
-        val html = Signature.build(SignatureConfig(), icons)
+    fun aNewUsersBlankSignatureAddsNothing() {
+        assertEquals("", Signature.build(SignatureConfig(), icons))
+    }
+
+    @Test
+    fun contactDetailsBecomeLinks() {
+        val html = Signature.build(sample, icons)
         assertTrue(html.contains("href=\"mailto:sales.marketing@travelessence.mv\""))
         assertTrue(html.contains("href=\"tel:+9607978580\""))
         assertTrue(html.contains("H.Finivairoalhi, 2nd Floor<br>Raivilla Magu, Henveiru"))
@@ -36,7 +43,7 @@ class SignatureTest {
 
     @Test
     fun hiddenFieldsSocialsLogoAndEscaping() {
-        val cfg = SignatureConfig(phone = "", address = "", name = "Aisha <Sales>", theme = "light", accent = "#0B7A8F",
+        val cfg = sample.copy(phone = "", address = "", name = "Aisha <Sales>", theme = "light", accent = "#0B7A8F",
             socials = mapOf("instagram" to "@travelessence", "whatsapp" to "+960 7978580"))
         val html = Signature.build(cfg, icons, "https://icons.test/logo.png")
         assertFalse(html.contains("tel:") || html.contains("maps"))
@@ -50,7 +57,7 @@ class SignatureTest {
     @Test
     fun signatureFollowsMessageAndImagesBecomeInline() {
         val png = java.util.Base64.getEncoder().encodeToString(byteArrayOf(1, 2, 3))
-        val doc = Html.buildEmail("<p>Hello</p>", Signature.build(SignatureConfig(), { _, _ -> "data:image/png;base64,$png" }))
+        val doc = Html.buildEmail("<p>Hello</p>", Signature.build(sample, { _, _ -> "data:image/png;base64,$png" }))
         assertTrue(doc.indexOf("Hello") < doc.indexOf("sales.marketing@travelessence.mv"))
         val (rewritten, images) = Html.extractInlineImages(doc)
         assertEquals(1, images.size)

@@ -66,15 +66,7 @@ fun AutomationScreen(app: App) {
     val showRun = campaign.phase != "idle"
     val subject = draft.subject.trim()
 
-    fun validate(): String? = when {
-        subject.isEmpty() || Html.isBlank(draft.html) -> "Please write a subject and email content first."
-        eligible.isEmpty() -> "Add at least one recipient first."
-        draft.attachments.any { !File(it.path).isFile } -> "An attachment can no longer be found - remove it and add it again."
-        settings.backend == "microsoft" && (settings.msClientId.isBlank() || state.graphClient()?.isSignedIn != true) ->
-            "Sign in to Microsoft 365 / Outlook in Settings, or choose another sending method."
-        settings.backend == "smtp" && settings.smtpHost.isBlank() -> "Set up your SMTP server in Settings first."
-        else -> null
-    }
+    fun validate(): String? = state.campaignProblem(draft, eligible.size)
 
     Page {
         item { PageHeader("Automation", "Sends your email to one customer at a time, waiting between each one (default: 1 email every minute).") }

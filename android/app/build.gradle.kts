@@ -7,17 +7,35 @@ plugins {
 
 android {
     namespace = "com.travelessence.emailstudio"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.travelessence.emailstudio"
+        // The Google Play listing's permanent id (the Kotlin package above is internal and never shown).
+        applicationId = "com.legacyai.emailstudio"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 3
-        versionName = "1.3.0"
+        targetSdk = 36          // Google Play: new apps and updates must target API 36 from 31 Aug 2026
+        versionCode = 4
+        versionName = "1.5.0"
+        // Optional: a Microsoft Entra app registration built into the release, so users can sign in to
+        // Microsoft 365 / Outlook.com without creating their own. Pass -PmsClientId=... or MS_CLIENT_ID.
+        val msClientId = (project.findProperty("msClientId") as String?) ?: System.getenv("MS_CLIENT_ID") ?: ""
+        buildConfigField("String", "MS_CLIENT_ID", "\"$msClientId\"")
+        buildConfigField("String", "PRIVACY_URL",
+            "\"https://github.com/shahydlegacyofficial-creator/Automate-Email/blob/HEAD/PRIVACY.md\"")
     }
 
     signingConfigs {
+        // Google Play upload key - NEVER committed. CI writes it from repository secrets; see PLAY_SUBMISSION.md.
+        val uploadStore = System.getenv("ANDROID_UPLOAD_KEYSTORE_PATH")
+        if (uploadStore != null && file(uploadStore).isFile) {
+            create("upload") {
+                storeFile = file(uploadStore)
+                storePassword = System.getenv("ANDROID_UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_UPLOAD_KEY_ALIAS") ?: "upload"
+                keyPassword = System.getenv("ANDROID_UPLOAD_KEY_PASSWORD") ?: System.getenv("ANDROID_UPLOAD_KEYSTORE_PASSWORD")
+            }
+        }
+        // Key for the APK downloads on GitHub (installed by hand, outside Google Play).
         create("release") {
             // A CI secret can supply a private keystore; otherwise the bundled key is used so
             // every build can be installed over the previous one.
@@ -34,7 +52,10 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            // -Pplay builds the Google Play bundle: signed with the upload key when it is available,
+            // otherwise left unsigned (to be signed with the upload key afterwards) - never with the public key.
+            signingConfig = if (project.hasProperty("play")) signingConfigs.findByName("upload")
+                else signingConfigs.getByName("release")
         }
         debug {
             signingConfig = signingConfigs.getByName("release")

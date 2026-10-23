@@ -38,6 +38,8 @@ jobs:
         run: ./gradlew --no-daemon testDebugUnitTest
 
       - name: Build APKs
+        env:
+          MS_CLIENT_ID: ${{ vars.MS_CLIENT_ID }}
         run: ./gradlew --no-daemon assembleDebug assembleRelease
 
       - name: Rename APKs
@@ -56,6 +58,51 @@ jobs:
         with:
           name: debug-apk
           path: android/dist/LegacyAIEmailStudio-debug.apk
+
+      # Google Play bundle. Signed with the upload key when the repository secrets exist (see PLAY_SUBMISSION.md),
+      # otherwise built unsigned so it can be signed with the upload key afterwards - never with the public APK key.
+      - name: Build Google Play bundle (AAB)
+        env:
+          MS_CLIENT_ID: ${{ vars.MS_CLIENT_ID }}
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -n "$UPLOAD_KEYSTORE_BASE64" ]; then
+            echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            export ANDROID_UPLOAD_KEYSTORE_PATH="$RUNNER_TEMP/upload.jks"
+            NAME=LegacyAIEmailStudio-play.aab
+          else
+            echo "::notice::No upload-key secrets - the Play bundle is UNSIGNED. Add the secrets in PLAY_SUBMISSION.md to sign it here."
+            NAME=LegacyAIEmailStudio-play-unsigned.aab
+          fi
+          ./gradlew --no-daemon -Pplay bundleRelease
+          rm -f "$RUNNER_TEMP/upload.jks"
+          cp app/build/outputs/bundle/release/app-release.aab "dist/$NAME"
+          cp app/build/outputs/mapping/release/mapping.txt dist/LegacyAIEmailStudio-play-mapping.txt
+          echo "### Google Play bundle: \`$NAME\` (artifact **LegacyAIEmailStudio-play**)" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LegacyAIEmailStudio-play
+          path: |
+            android/dist/*.aab
+            android/dist/LegacyAIEmailStudio-play-mapping.txt
+          if-no-files-found: error
+
+      - name: Commit Play bundle for signing
+        if: "!startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[aab]')"
+        working-directory: .
+        run: |
+          mkdir -p downloads/play
+          cp android/dist/*.aab android/dist/LegacyAIEmailStudio-play-mapping.txt downloads/play/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add downloads/play
+          git commit -m "Add Play bundle build [skip ci]" || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Commit APK for direct download
         if: "!startsWith(github.ref, 'refs/tags/') && contains(github.event.head_commit.message, '[apk]')"

@@ -155,7 +155,7 @@ fun OutlookScreen(app: App) {
     val messages = r?.messages.orEmpty().filter { needle.isEmpty() || needle in it.subject.lowercase() || needle in it.recipients || needle in it.sender }
 
     Page {
-        item { PageHeader("Outlook data", "Collect customer addresses and the emails Travel Essence has sent - then reuse them as recipients or templates.") }
+        item { PageHeader("Outlook data", "Collect customer addresses and the emails you have sent - then reuse them as recipients or templates.") }
         item {
             SectionCard(title = "Source", subtitle = "Your own addresses are always excluded.") {
                 Dropdown("Read from", SOURCES, source) { source = it; if (it != "graph" && folder == "contacts") folder = "sent" }
@@ -178,13 +178,13 @@ fun OutlookScreen(app: App) {
                             DateField("To", to, Modifier.weight(1f)) { datePicker = "to" }
                         }
                         OutlinedTextField(subjectFilter, { subjectFilter = it }, Modifier.fillMaxWidth(), singleLine = true,
-                            label = { Text("Subject contains") }, placeholder = { Text("e.g. Travel Essence, Booking, Quotation") })
+                            label = { Text("Subject contains") }, placeholder = { Text("e.g. Booking, Quotation, Offer") })
                         OutlinedTextField(maxItems, { maxItems = it.filter(Char::isDigit).take(6) }, Modifier.fillMaxWidth(), singleLine = true,
                             label = { Text("Max emails") })
                     }
                 }
                 OutlinedTextField(exclude, { exclude = it }, Modifier.fillMaxWidth(), singleLine = true,
-                    label = { Text("Exclude addresses / domains") }, placeholder = { Text("@travelessence.com, noreply@…") })
+                    label = { Text("Exclude addresses / domains") }, placeholder = { Text("@yourcompany.com, noreply@…") })
                 if (running) {
                     LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                     Text(progressText, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -70,7 +70,7 @@ data class LoadedMessage(
 )
 
 val FOLDER_CHOICES = listOf(
-    "sent" to "Sent Items (emails Travel Essence sent)",
+    "sent" to "Sent Items (emails you sent)",
     "inbox" to "Inbox (customers who emailed us)",
     "both" to "Sent Items + Inbox",
     "contacts" to "Contacts",

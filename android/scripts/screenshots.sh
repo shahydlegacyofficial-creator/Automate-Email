@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Installs the debug build on the emulator and captures each screen in both themes.
 set -euo pipefail
-PKG=com.travelessence.emailstudio
+PKG=com.legacyai.emailstudio
+ACT=com.travelessence.emailstudio.MainActivity
 OUT=../docs/android-screenshots
 mkdir -p "$OUT"
 adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -9,7 +10,7 @@ adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS || true
 
 shot() {   # file-name screen theme [extra args...]
   local name=$1 screen=$2 theme=$3; shift 3
-  adb shell am start -W -n $PKG/.MainActivity --activity-clear-task --es screen "$screen" --ez demo true --es theme "$theme" "$@" > /dev/null
+  adb shell am start -W -n $PKG/$ACT --activity-clear-task --es screen "$screen" --ez demo true --es theme "$theme" "$@" > /dev/null
   sleep 5
   adb exec-out screencap -p > "$OUT/$name.png"
   echo "captured $name"
@@ -27,6 +28,9 @@ shot light-quicksend QuickSend light
 shot light-history History light
 shot light-signature Signature light
 shot dark-signature Signature dark
+shot light-agents Agents light --ez agents true
+shot dark-agents Agents dark --ez agents true
+shot light-welcome Dashboard light --ez welcome true
 
 # Start a simulated campaign (10 s interval) and capture it mid-run.
 shot light-automation-start Automation light --ez start_campaign true

@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settings by app.state.settings.collectAsStateWithLifecycle()
             TravelEssenceTheme(isDark(settings.theme)) {
-                AppRoot(app, start)
+                if (settings.onboarded) AppRoot(app, start) else WelcomeScreen(app)
             }
         }
     }
@@ -62,6 +62,9 @@ class MainActivity : ComponentActivity() {
     /** Debug builds only: `--ez demo true` fills the app with sample data for screenshots. */
     private fun seedDemo(app: App, intent: Intent) {
         intent.getStringExtra("theme")?.let { t -> app.state.saveSettings { it.copy(theme = t) } }
+        if (intent.getBooleanExtra("welcome", false)) { app.state.saveSettings { it.copy(onboarded = false) }; return }
+        if (intent.getBooleanExtra("demo", false)) app.state.saveSettings { it.copy(onboarded = true) }
+        if (intent.getBooleanExtra("agents", false)) app.state.saveSettings { it.copy(aiEnabled = true, aiLan = true) }
         if (intent.getBooleanExtra("start_campaign", false) && !app.campaign.isRunning) {
             val d = app.state.draft.value
             app.campaign.start(app.state.recipients.value, d.subject, d.html, d.attachments, 10)
@@ -69,17 +72,19 @@ class MainActivity : ComponentActivity() {
         }
         if (!intent.getBooleanExtra("demo", false) || app.state.recipients.value.isNotEmpty()) return
         val s = app.state
-        s.saveSettings { it.copy(backend = "simulate", msAccount = "info@travelessence.com") }
+        s.saveSettings { it.copy(backend = "simulate", businessName = "Northwind Travel", testEmail = "hello@northwind.example",
+            signature = it.signature.copy(name = "Northwind Travel", email = "hello@northwind.example", phone = "+1 555 010 2030",
+                website = "northwind.example")) }
         s.addRecipients(listOf(
             Recipient("sarah.khan@gmail.com", "Sarah Khan"), Recipient("john.smith@outlook.com", "John Smith"),
             Recipient("maria.lopez@hotmail.com", "Maria Lopez"), Recipient("leo@icloud.com"),
             Recipient("ali.raza@yahoo.com", "Ali Raza"), Recipient("emma.wilson@gmail.com", "Emma Wilson"),
         ))
         s.replaceDraft(Draft(
-            subject = "{first_name}, your exclusive Travel Essence holiday offers",
-            html = "<p>Dear {first_name},</p><p>Thank you for travelling with <b>Travel Essence</b>. We have hand-picked " +
-                "<span style=\"color:#0B7A8F\">exclusive summer packages</span> for you:</p><ul><li>Maldives – 5 nights from £899</li>" +
-                "<li>Dubai city break – 4 nights from £499</li></ul><p>Kind regards,<br>The Travel Essence Team</p>",
+            subject = "{first_name}, your exclusive spring offers",
+            html = "<p>Dear {first_name},</p><p>Thank you for travelling with <b>Northwind</b>. We have hand-picked " +
+                "<span style=\"color:#0B7A8F\">exclusive spring packages</span> for you:</p><ul><li>Lisbon – 4 nights from \$699</li>" +
+                "<li>Kyoto – 6 nights from \$1,299</li></ul><p>Kind regards,<br>The Northwind team</p>",
         ))
         val now = LocalDateTime.now().minusDays(2).withNano(0)
         val queue = s.recipients.value.take(4)
@@ -97,7 +102,7 @@ private val BOTTOM = listOf(
     Triple(Screen.Automation, "Automation", Icons.Filled.Bolt),
     Triple(Screen.More, "More", Icons.Filled.Apps),
 )
-private val MORE_CHILDREN = setOf(Screen.QuickSend, Screen.Signature, Screen.Outlook, Screen.History, Screen.Settings)
+private val MORE_CHILDREN = setOf(Screen.QuickSend, Screen.Signature, Screen.Outlook, Screen.History, Screen.Agents, Screen.Settings)
 
 @Composable
 fun AppRoot(app: App, start: Screen) {
@@ -193,8 +198,22 @@ fun AppRoot(app: App, start: Screen) {
                 Screen.Signature -> SignatureScreen(app)
                 Screen.Outlook -> OutlookScreen(app)
                 Screen.History -> HistoryScreen(app)
+                Screen.Agents -> AgentsScreen(app)
                 Screen.Settings -> SettingsScreen(app)
             }
         }
+    }
+
+    // An AI agent asked to send: answer here, over whatever screen is open.
+    val approval by app.agent.approval.collectAsStateWithLifecycle()
+    approval?.let { a ->
+        AlertDialog(
+            onDismissRequest = {},
+            icon = { Icon(Icons.Filled.SmartToy, null) },
+            title = { Text(a.title) },
+            text = { Text(a.text) },
+            confirmButton = { Button(onClick = { app.agent.answer(a.id, true) }) { Text(a.approveLabel) } },
+            dismissButton = { TextButton(onClick = { app.agent.answer(a.id, false) }) { Text("Decline") } },
+        )
     }
 }

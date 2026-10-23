@@ -125,8 +125,10 @@ fun SettingsScreen(app: App) {
                 SectionCard(title = "Microsoft 365 / Outlook account",
                     action = { Pill(if (signedIn) "Signed in" else "Not signed in", if (signedIn) Tone.Success else Tone.Warning) }) {
                     if (signedIn && saved.msAccount.isNotBlank()) Text("Signed in as ${saved.msAccount}", fontWeight = FontWeight.SemiBold)
+                    val builtIn = BuildConfig.MS_CLIENT_ID.isNotBlank()
                     OutlinedTextField(s.msClientId, { s = s.copy(msClientId = it.trim()) }, Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text("Application (client) ID") }, placeholder = { Text("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx") })
+                        label = { Text(if (builtIn) "Your own Application (client) ID (optional)" else "Application (client) ID") },
+                        placeholder = { Text(if (builtIn) "Leave empty to use the app's built-in sign-in" else "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx") })
                     OutlinedTextField(s.msTenant, { s = s.copy(msTenant = it.trim()) }, Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text("Tenant") }, supportingText = { Text("“common” works for most accounts, or use your organisation's tenant ID / domain") })
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -136,7 +138,7 @@ fun SettingsScreen(app: App) {
                             state.graphClient()?.signOut(); state.saveSettings { it.copy(msAccount = "") }; signedIn = false
                         }
                     }
-                    Text(
+                    if (!builtIn) Text(
                         "One-time setup (by you or your IT admin): in the Microsoft Entra admin center create an App registration " +
                             "(any account type), under Authentication enable “Allow public client flows”, and add the delegated " +
                             "Microsoft Graph permissions Mail.Send, Mail.ReadWrite, Contacts.Read and User.Read. " +
@@ -218,6 +220,9 @@ fun SettingsScreen(app: App) {
                 Text("Legacy AI Email Studio for Android v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
                 Text("Settings, drafts and history are stored privately on this phone. Passwords and sign-in tokens are encrypted with the Android Keystore.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton(onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.PRIVACY_URL))) } }) {
+                    Text("Privacy policy")
+                }
             }
         }
     }
@@ -228,7 +233,7 @@ fun SettingsScreen(app: App) {
             title = { Text("Sign in to Microsoft") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("1. Tap “Open sign-in page”.\n2. Enter this code and sign in with the Travel Essence mailbox.\n3. Come back - this finishes automatically.")
+                    Text("1. Tap “Open sign-in page”.\n2. Enter this code and sign in with the mailbox you send from.\n3. Come back - this finishes automatically.")
                     Text(code.userCode, fontFamily = FontFamily.Monospace, fontSize = 30.sp, fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary)
                     Row(verticalAlignment = Alignment.CenterVertically) {

@@ -67,7 +67,7 @@ data class Session(
 @Serializable
 data class Settings(
     val theme: String = "system",            // system | light | dark
-    val backend: String = "microsoft",       // microsoft | smtp | simulate
+    val backend: String = "simulate",        // microsoft | smtp | simulate - new installs start in Simulation mode
     val msClientId: String = "",
     val msTenant: String = "common",
     val msAccount: String = "",
@@ -81,11 +81,18 @@ data class Settings(
     val smtpSecurity: String = "starttls",   // starttls | ssl | none
     val smtpUsername: String = "",
     val smtpFromEmail: String = "",
-    val smtpFromName: String = "Travel Essence",
+    val smtpFromName: String = "",
     val imapHost: String = "",
     val imapPort: Int = 993,
     val suppressionList: String = "",
     val outlookExclude: String = "",
+    val onboarded: Boolean = false,          // the welcome screen has been completed or skipped
+    val businessName: String = "",
+    // AI agents (MCP) - see agent/AgentServer.kt
+    val aiEnabled: Boolean = false,
+    val aiPort: Int = 8765,
+    val aiLan: Boolean = false,              // false = only apps on this phone; true = devices on the same Wi-Fi too
+    val aiApproval: String = "always",       // always | campaigns | never - when to ask on the phone before an AI sends
 )
 
 data class OutgoingEmail(
