@@ -32,6 +32,12 @@ shot light-agents Agents light --ez agents true
 shot dark-agents Agents dark --ez agents true
 shot light-welcome Dashboard light --ez welcome true
 
+# End-to-end: a real MCP client talks to the phone's AI-agent server (through adb port forwarding).
+shot light-agent-check Dashboard light --ez demo true --es agent_token ci-agent-token
+adb forward tcp:18765 tcp:8765
+python3 scripts/agent_check.py http://127.0.0.1:18765/mcp ci-agent-token 2>&1 | tee "$OUT/agent-check.txt"
+grep -q "AGENT CHECK PASSED" "$OUT/agent-check.txt"
+
 # Start a simulated campaign (10 s interval) and capture it mid-run.
 shot light-automation-start Automation light --ez start_campaign true
 sleep 14

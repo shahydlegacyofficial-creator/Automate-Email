@@ -1,0 +1,5 @@
+First Google Play release.
+• Connect your AI agent (MCP): it writes, previews and sends campaigns, and you approve every send on your phone
+• Welcome screen to set up your name, email and signature
+• Starts in Simulation mode so you can try everything safely
+• Updated for Android 16

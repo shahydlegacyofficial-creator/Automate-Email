@@ -52,7 +52,9 @@ Also included:
 There is also a native **Android app** with the same features. It sends through Microsoft 365 / Outlook.com
 (saved to Sent Items), SMTP, or simulation, and collects data from your Outlook mailbox, an IMAP mailbox or
 the phone's contacts. See [`android/README.md`](android/README.md) for the APK download and the one-time
-Microsoft sign-in setup.
+Microsoft sign-in setup. The Android app also has **AI agents (MCP)**: Claude Code, Claude Desktop, Legacy AI or any
+MCP client can use it, and you approve each send on the phone. It is prepared for **Google Play**; see
+[`PLAY_SUBMISSION.md`](PLAY_SUBMISSION.md) and the [privacy policy](PRIVACY.md).
 
 | Dashboard | Compose | Campaign notification |
 |---|---|---|

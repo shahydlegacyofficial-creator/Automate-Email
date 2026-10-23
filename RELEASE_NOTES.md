@@ -1,5 +1,12 @@
 **Legacy AI Email Studio** - email automation for **Travel Essence**: write an email once, then the app sends it to each customer one at a time, one minute apart.
 
+## What's new in 1.5.0
+- **Ready for Google Play (Android):** the app now targets Android 16 and builds as a Play bundle. It also has a new package name, `com.legacyai.emailstudio`, so it installs as a new app next to the old Travel Essence Mail; move over and then uninstall the old one.
+- **AI agents on Android:** switch on **More → AI agents** and connect Claude Code, Claude Desktop, Legacy AI or any MCP client. The agent can build the recipient list, write and preview the email, send a test, start and control the campaign, and read the history. You approve every send on the phone. Only apps on the phone can connect, unless you allow your Wi-Fi.
+- **For any business:** a welcome screen sets up your name, email and signature. New installs start in Simulation mode, and nothing is pre-filled with Travel Essence details anymore.
+- **New Android icon:** a paper plane, the universal "send" symbol.
+- Windows: no changes since 1.4.0.
+
 ## What's new in 1.4.0
 - **Inbox (Windows):** emails arriving at your Travel Essence mailboxes, in one list. Watch the Outlook app (every account in it), Microsoft 365 / new Outlook, and any number of other mailboxes over IMAP. Read them, **Reply** or **Reply all** (same thread, with your signature and the original quoted), mark read/unread, or add the sender to your recipients. Replies appear in History.
 - **New-email alerts:** the app checks every 2 minutes (you can change this), shows a Windows notification, and the sidebar shows how many are unread.

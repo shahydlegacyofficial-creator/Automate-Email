@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +31,7 @@ import com.travelessence.emailstudio.ui.screens.*
 import com.travelessence.emailstudio.ui.theme.LocalTones
 import com.travelessence.emailstudio.ui.theme.TravelEssenceTheme
 import com.travelessence.emailstudio.ui.theme.isDark
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 class MainActivity : ComponentActivity() {
@@ -65,6 +67,11 @@ class MainActivity : ComponentActivity() {
         if (intent.getBooleanExtra("welcome", false)) { app.state.saveSettings { it.copy(onboarded = false) }; return }
         if (intent.getBooleanExtra("demo", false)) app.state.saveSettings { it.copy(onboarded = true) }
         if (intent.getBooleanExtra("agents", false)) app.state.saveSettings { it.copy(aiEnabled = true, aiLan = true) }
+        intent.getStringExtra("agent_token")?.let { token ->   // CI: a known token for the end-to-end MCP check
+            app.state.secrets.put("ai_token", token)
+            app.state.saveSettings { it.copy(onboarded = true, aiEnabled = true) }
+            app.state.scope.launch { app.agent.apply() }
+        }
         if (intent.getBooleanExtra("start_campaign", false) && !app.campaign.isRunning) {
             val d = app.state.draft.value
             app.campaign.start(app.state.recipients.value, d.subject, d.html, d.attachments, 10)
@@ -131,7 +138,7 @@ fun AppRoot(app: App, start: Screen) {
                                     MaterialTheme.shapes.medium,
                                 ),
                                 contentAlignment = Alignment.Center,
-                            ) { Icon(Icons.Filled.Flight, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
+                            ) { Icon(Icons.AutoMirrored.Filled.Send, null, tint = Color.White, modifier = Modifier.size(19.dp)) }
                             Spacer(Modifier.width(10.dp))
                             Column {
                                 Text("Legacy AI Email Studio", style = MaterialTheme.typography.titleMedium)

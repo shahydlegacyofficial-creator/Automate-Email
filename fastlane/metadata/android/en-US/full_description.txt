@@ -1,0 +1,36 @@
+Legacy AI Email Studio turns one well-written email into a personal message for every customer. It sends to one person at a time, with a pause between each, from your own mailbox. Your AI agent can do the work for you, and nothing is sent without your approval.
+
+WRITE ONCE, PERSONALISE FOR EVERYONE
+• Rich email editor with formatting, links, inline pictures and JPG / PNG / PDF attachments
+• Personal fields such as {first_name} and {name}, filled in for each recipient
+• Templates, preview and "send a test to me"
+• A branded email signature with your contact details, social links and logo
+
+SEND ONE BY ONE, NOT IN BULK
+• Each recipient gets their own email, one at a time, with a pause you choose (default: 1 minute)
+• A live progress bar, countdown and estimated finish time
+• Pause, resume or stop at any time, from the app or the notification
+• Keeps sending while the screen is off, with a progress notification
+• A history of every campaign with per-recipient results
+
+RECIPIENTS MADE EASY
+• Paste addresses in bulk, or import CSV, Excel or TXT files
+• Duplicates and invalid addresses are removed automatically
+• Import from your phone's contacts or your mailbox (sent emails, inbox, contacts)
+• A do-not-email list for unsubscribes, skipped by every campaign
+
+WORKS WITH YOUR AI AGENT
+Switch on AI agents and connect any assistant that supports the Model Context Protocol (MCP), such as Claude Code, Claude Desktop or Legacy AI. Your agent can build the recipient list, write and preview the email, send a test, start the campaign and report back on progress.
+• You approve on your phone before your agent sends anything, so you always have the final say
+• Private by default: only apps on your phone can connect, protected by an access token. You can also allow your computer on the same Wi-Fi.
+• Copy-ready setup instructions inside the app
+
+YOUR MAILBOX, YOUR DATA
+• Sends through Microsoft 365 / Outlook.com (saved in your Sent Items), or any SMTP email account such as Gmail with an app password, Zoho or your web host
+• Simulation mode lets you practise the whole flow without sending a single email
+• No accounts, no ads, no analytics, no tracking. Your data stays on your phone and goes only to the email service you connect.
+• Passwords and sign-in tokens are encrypted with the Android Keystore
+
+Light and dark themes are included.
+
+Please only email people who have agreed to hear from you, and use the do-not-email list for anyone who asks to stop.

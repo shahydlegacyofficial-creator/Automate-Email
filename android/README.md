@@ -27,6 +27,29 @@ Pushing a tag such as `v1.0.0` also attaches the APK to a GitHub **Release**.
 | Progress bar | Sent / failed / remaining, countdown to the next email, estimated finish, success rate, live log, notification progress |
 | History, re-queue, do-not-email list, signature, simulation mode | All included |
 
+## AI agents (MCP)
+
+**More → AI agents** lets an AI assistant use the app through the Model Context Protocol. Examples are Claude Code,
+Claude Desktop, Cursor, Legacy AI or any MCP client. Switch on **Let AI agents use this app**. The screen then shows the
+address (`http://127.0.0.1:8765/mcp`) and an access token, which agents send as `Authorization: Bearer <token>`.
+
+- Only apps on the phone can connect, unless you switch on **Allow devices on my Wi-Fi**. Your computer can then connect
+  to `http://<phone-ip>:8765/mcp`. The screen has copy-ready setup for Claude Code and for Claude Desktop (via
+  `mcp-remote`).
+- The tools match the Windows app: `get_status`, `get_recipients`, `add_recipients`, `remove_recipients`,
+  `list_templates`, `compose_email`, `preview_email`, `send_test_email`, `start_campaign`, `get_campaign_status`,
+  `control_campaign`, `send_email`, `get_history`.
+- **You approve on the phone** before an agent sends anything. The default is *always*; you can choose *campaigns only*
+  or *never*. A request you don't answer within 2 minutes is declined. Campaigns can only start while the app is on
+  screen, which is an Android rule.
+- Keep the app open while your agent works: Android pauses apps in the background. A started campaign keeps sending
+  on its own.
+
+## Google Play
+
+The Play Store build (package `com.legacyai.emailstudio`, AAB) and everything needed to publish it are described in
+[`PLAY_SUBMISSION.md`](../PLAY_SUBMISSION.md).
+
 ## Sending methods (Settings)
 
 Android can't control the Outlook app the way Windows can, so the phone talks to the mailbox directly:
