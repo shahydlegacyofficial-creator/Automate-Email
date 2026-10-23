@@ -45,6 +45,12 @@ DEFAULT_SETTINGS: dict = {
     "ai_port": 8765,
     "ai_token": "",
     "ai_approval": "campaigns",    # always | campaigns | never - when to ask in the app before AI sends
+    "inbox_enabled": True,         # check for new emails (core.inbox)
+    "inbox_outlook": None,         # watch every account in the classic Outlook app (None = automatic)
+    "inbox_graph": None,           # watch the signed-in Microsoft 365 mailbox (None = automatic)
+    "inbox_imap_accounts": [],     # [{"host", "port", "security", "username", "name"}] - passwords in keyring
+    "inbox_interval_minutes": 2,
+    "inbox_notify": True,          # Windows notification + sound when an email arrives
 }
 
 _lock = threading.RLock()

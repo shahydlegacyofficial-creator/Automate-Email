@@ -43,6 +43,7 @@ class OutgoingEmail:
     attachments: list[str] = field(default_factory=list)
     cc: list[str] = field(default_factory=list)
     bcc: list[str] = field(default_factory=list)
+    headers: dict[str, str] = field(default_factory=dict)   # e.g. In-Reply-To / References for replies (SMTP)
 
 
 def check_attachments(paths: list[str]) -> None:
@@ -236,6 +237,9 @@ class SmtpSender(BaseSender):
             msg["Cc"] = ", ".join(email.cc)
         msg["Subject"] = email.subject
         msg["Message-ID"] = make_msgid(domain=self.from_email.rsplit("@", 1)[-1])
+        for name, value in email.headers.items():
+            if value:
+                msg[name] = value
         body_html, inline_images = extract_inline_images(email.html)
         msg.set_content(html_to_text(email.html) or " ")
         msg.add_alternative(body_html, subtype="html")

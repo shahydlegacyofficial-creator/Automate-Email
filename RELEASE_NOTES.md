@@ -1,5 +1,11 @@
 **Legacy AI Email Studio** - email automation for **Travel Essence**: write an email once, then the app sends it to each customer one at a time, one minute apart.
 
+## What's new in 1.4.0
+- **Inbox (Windows):** emails arriving at your Travel Essence mailboxes, in one list. Watch the Outlook app (every account in it), Microsoft 365 / new Outlook, and any number of other mailboxes over IMAP. Read them, **Reply** or **Reply all** (same thread, with your signature and the original quoted), mark read/unread, or add the sender to your recipients. Replies appear in History.
+- **New-email alerts:** the app checks every 2 minutes (you can change this), shows a Windows notification, and the sidebar shows how many are unread.
+- **Legacy AI watches the inbox too** (Legacy v3.24): when a customer writes, she tells you who it is and what they want, out loud, as a notice and on your phone. She drafts a reply and sends it only after you approve the exact words. Newsletters and spam are not announced.
+- In **Simulation mode** the Inbox shows a practice mailbox with sample customer emails, so you can try replying safely.
+
 ## What's new in 1.3.0
 - **New name: Legacy AI Email Studio** (was Travel Essence Email Studio, and Travel Essence Mail on Android). Every feature from 1.2.0 is unchanged: campaigns, saved lists, the signature, Microsoft 365 / new Outlook, and Legacy AI control.
 - **Upgrading keeps everything.** The installer updates your existing install in place and removes the old shortcuts. Your settings, lists, templates, history and the Legacy AI connection stay as they are. The Android app installs over the old one.

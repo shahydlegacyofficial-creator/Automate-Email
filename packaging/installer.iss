@@ -2,7 +2,7 @@
 ;   iscc /DAppVersion=1.0.0 packaging\installer.iss
 
 #ifndef AppVersion
-  #define AppVersion "1.3.0"
+  #define AppVersion "1.4.0"
 #endif
 #define AppName "Legacy AI Email Studio"
 #define OldName "Travel Essence Email Studio"

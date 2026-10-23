@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QFrame, QHBoxLayout, QMainWindow, QMessageBox, QProgressBar,
-    QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QPushButton, QStackedWidget, QSystemTrayIcon, QVBoxLayout, QWidget,
 )
 
 from .. import APP_NAME, __version__
 from . import theme
 from .icons import icon
 from .assistant import AssistantService
+from .inbox_service import InboxService
 from .pages.assistant import AssistantPage
 from .pages.automation import AutomationPage
 from .pages.compose import ComposePage
 from .pages.dashboard import DashboardPage
 from .pages.history import HistoryPage
+from .pages.inbox import InboxPage
 from .pages.outlook import OutlookPage
 from .pages.quick_send import QuickSendPage
 from .pages.recipients import RecipientsPage
@@ -28,6 +31,7 @@ from .widgets import IconLabel, Toast, label
 NAV = [
     ("WORKSPACE", [
         ("dashboard", "Dashboard", "dashboard"),
+        ("inbox", "Inbox", "inbox"),
         ("compose", "Compose email", "compose"),
         ("recipients", "Recipients", "users"),
         ("automation", "Automation", "zap"),
@@ -63,9 +67,11 @@ class MainWindow(QMainWindow):
         self.stack.setObjectName("Pages")
         root_layout.addWidget(self.stack, 1)
 
+        self.inbox = InboxService(state)
         self.assistant = AssistantService(state, self)
         self.pages = {
             "dashboard": DashboardPage(state),
+            "inbox": InboxPage(state, self.inbox),
             "compose": ComposePage(state),
             "recipients": RecipientsPage(state),
             "automation": AutomationPage(state),
@@ -85,6 +91,18 @@ class MainWindow(QMainWindow):
         state.campaign_status.connect(self._campaign_status)
         self.navigate("dashboard")
         self.assistant.apply_settings()
+
+        self.tray: QSystemTrayIcon | None = None
+        if QSystemTrayIcon.isSystemTrayAvailable():
+            self.tray = QSystemTrayIcon(QApplication.windowIcon() or QIcon(), self)
+            self.tray.setToolTip(APP_NAME)
+            self.tray.messageClicked.connect(lambda: self._bring_to("inbox"))
+            self.tray.activated.connect(lambda _reason: self._bring_to("dashboard" if self.isVisible() else "inbox"))
+            self.tray.show()
+        self.inbox.changed.connect(self._inbox_badge)
+        self.inbox.arrived.connect(self._new_mail)
+        self._inbox_badge()
+        self.inbox.start()
 
     # ------------------------------------------------------------ sidebar
     def _build_sidebar(self) -> QFrame:
@@ -175,6 +193,32 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(page)
         page.on_show()
 
+    # ------------------------------------------------------------ inbox
+    def _inbox_badge(self):
+        unread = self.inbox.inbox.unread_count()
+        self.nav_buttons["inbox"].setText("  Inbox" + (f"   {unread}" if unread else ""))
+
+    def _new_mail(self, messages: list):
+        first = messages[0]
+        if len(messages) == 1:
+            title, text = f"New email from {first.from_name or first.from_email}", first.subject or "(no subject)"
+        else:
+            title = f"{len(messages)} new emails"
+            text = ", ".join(m.from_name or m.from_email for m in messages[:3]) + ("…" if len(messages) > 3 else "")
+        self.state.notify(f"{title}: {text}")
+        if self.state.settings.get("inbox_notify", True):
+            if self.tray is not None:
+                self.tray.showMessage(title, text, QSystemTrayIcon.MessageIcon.Information, 8000)
+            QApplication.alert(self)
+
+    def _bring_to(self, page: str):
+        if self.isMinimized():
+            self.showNormal()
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        self.navigate(page)
+
     def set_theme(self, mode: str):
         if mode == theme.mode():
             return
@@ -212,5 +256,8 @@ class MainWindow(QMainWindow):
                 return
             automation.shutdown()
         self.assistant.shutdown()
+        self.inbox.stop()
+        if self.tray is not None:
+            self.tray.hide()
         self.state.flush()
         event.accept()

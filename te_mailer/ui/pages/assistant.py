@@ -19,6 +19,8 @@ ABILITIES = [
     ("Run campaigns", "Sends to a whole list one customer at a time, exactly like the Automation page - "
                       "and can pause, resume or stop it."),
     ("Quick emails & tests", "Sends a test to your test address, or a one-off email to a few people."),
+    ("Watch your inbox", "Tells you when a customer email arrives, with a short summary, and replies "
+                         "for you once you have approved what she will send (Legacy v3.24 or newer)."),
     ("Report back", "Tells you progress, failures and what was sent recently."),
 ]
 

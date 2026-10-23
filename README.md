@@ -33,6 +33,8 @@ Also included:
 - **Auto-pause** after 3 failures in a row (for example if Outlook was closed).
 - Optional **Outlook signature** and a choice of which **Outlook account** to send from.
 - **SMTP** sending as an alternative, and a **Simulation mode** for practising without sending anything.
+- **Inbox**: emails arriving at the Travel Essence mailboxes (Outlook app, Microsoft 365, IMAP accounts), with
+  Reply / Reply all, read/unread, new-email notifications and an unread count. See [Inbox](#inbox).
 - **Saved lists**: name a recipient list (e.g. “VIP guests”) on the Recipients page and load it again later.
 - **AI assistant (MCP)**: Legacy AI, or any AI app that speaks the Model Context Protocol, can write the
   email, manage lists, start/pause/stop campaigns and report progress. See [AI assistant](#ai-assistant-legacy-ai--mcp).
@@ -89,12 +91,29 @@ If [Inno Setup](https://jrsoftware.org/isinfo.php) is installed, the installer i
    Keep the app and Outlook open until it finishes. Closing the app stops the campaign, and you can
    re-queue the remaining customers from **History**.
 
+## Inbox
+
+**Inbox** in the sidebar shows the emails arriving at your Travel Essence mailboxes. Under **Mailboxes…**, choose
+which ones to watch:
+
+- **Outlook app on this PC**: every account in classic Outlook. Replies go out from the account that received the email.
+- **Microsoft 365 / new Outlook**: the mailbox signed in under Settings.
+- **IMAP mailboxes**: any other account (web host, Zoho, Gmail with an app password...). Add as many as you need.
+  Replies go out through your sending method in Settings, threaded with the original.
+
+The app checks every 2 minutes (adjustable), shows a Windows notification for each new email, and the sidebar
+shows the unread count. **Reply** / **Reply all** adds your signature and quotes the original. Your own Travel
+Essence addresses are never copied back in. Replies are listed in History. Reading an email marks it read,
+as in Outlook.
+
+![Inbox](docs/screenshots/inbox.png)
+
 ## AI assistant (Legacy AI / MCP)
 
 **AI assistant** in the sidebar → tick **Allow Legacy AI to control this app**. The app then runs a small
 [MCP](https://modelcontextprotocol.io) server at `http://127.0.0.1:8765/mcp` (this PC only, bearer
 token required) and writes its address and token to `%APPDATA%\TravelEssenceEmailStudio\mcp.json`.
-**Legacy AI v3.23+ reads that file and connects by herself.** Any other MCP client can connect with the
+**Legacy AI v3.23+ reads that file and connects by herself (v3.24+ also watches the Inbox).** Any other MCP client can connect with the
 address and token shown on the page (Streamable HTTP, protocol 2024-11-05 to 2025-11-25).
 
 | Tool | What it does |
@@ -106,6 +125,8 @@ address and token shown on the page (Streamable HTTP, protocol 2024-11-05 to 202
 | `start_campaign`, `get_campaign_status`, `control_campaign` | Run the normal one-customer-at-a-time automation on a list; pause / resume / stop |
 | `send_email` | A one-off email to up to 5 people |
 | `get_history` | Recent sessions and results |
+| `list_inbox`, `read_email`, `mark_email` | Received emails, numbered in arrival order (`after=N` gives only what is new), full text, read/unread |
+| `reply_to_email` | Reply in the same thread from the receiving mailbox |
 
 ![AI assistant](docs/screenshots/ai-assistant.png)
 

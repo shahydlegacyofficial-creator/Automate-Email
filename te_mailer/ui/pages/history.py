@@ -12,7 +12,7 @@ from ...core import storage
 from ...core.recipients import Recipient
 from ..widgets import Card, Page, Pill, button, make_table, status_item, table_item
 
-KIND_LABELS = {"campaign": "Automation", "manual": "Manual", "test": "Test"}
+KIND_LABELS = {"campaign": "Automation", "manual": "Manual", "test": "Test", "reply": "Reply"}
 STATUS_TONES = {"completed": "success", "stopped": "warning", "error": "danger", "running": "accent"}
 
 
