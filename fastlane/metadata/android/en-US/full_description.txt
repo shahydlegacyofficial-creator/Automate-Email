@@ -31,6 +31,6 @@ YOUR MAILBOX, YOUR DATA
 • No accounts, no ads, no analytics, no tracking. Your data stays on your phone and goes only to the email service you connect.
 • Passwords and sign-in tokens are encrypted with the Android Keystore
 
-Light and dark themes are included.
+Works on phones, tablets and Chromebooks, in light and dark themes.
 
 Please only email people who have agreed to hear from you, and use the do-not-email list for anyone who asks to stop.

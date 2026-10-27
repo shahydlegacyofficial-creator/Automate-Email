@@ -52,7 +52,10 @@ shot dark-automation Automation dark
 
 # Large screens for the Play listing: the same emulator, resized. Sizes are exact 9:16 / 16:9, as Play requires.
 large() {   # folder size density
-  adb shell wm size "$2"; adb shell wm density "$3"; sleep 4
+  adb shell wm size "$2"; adb shell wm density "$3"
+  adb shell pm clear $PKG > /dev/null   # fresh sample data, not what the tests above left behind
+  adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS || true
+  sleep 4
   OUT=../docs/android-screenshots/$1; mkdir -p "$OUT"
   shot light-dashboard Dashboard light
   shot light-compose Compose light
@@ -67,7 +70,7 @@ large() {   # folder size density
 }
 large tablet-7in 1080x1920 280
 large tablet-10in 2560x1440 320
-large chromebook 1920x1080 200
+large chromebook 1920x1080 240
 adb shell wm size reset; adb shell wm density reset
 OUT=../docs/android-screenshots
 file "$OUT"/*/*.png || true
