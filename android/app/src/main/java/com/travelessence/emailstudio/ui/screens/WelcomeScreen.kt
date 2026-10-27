@@ -55,45 +55,47 @@ fun WelcomeScreen(app: App) {
         }
     }
 
-    Column(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).systemBarsPadding().imePadding()
-            .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Box(
-            Modifier.size(64.dp).background(
-                Brush.linearGradient(listOf(LocalTones.current.gradientStart, LocalTones.current.gradientEnd)),
-                MaterialTheme.shapes.large,
-            ),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.MarkEmailRead, null, tint = Color.White, modifier = Modifier.size(34.dp)) }
-        Text("Welcome to Legacy AI Email Studio", style = MaterialTheme.typography.headlineSmall)
-        Text("Write an email once and send it to each of your customers one at a time - by hand, or with your " +
-            "AI agent doing the work while you approve every send.", style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.TopCenter) {
+        Column(
+            Modifier.widthIn(max = 640.dp).fillMaxSize().systemBarsPadding().imePadding()
+                .verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                Modifier.size(64.dp).background(
+                    Brush.linearGradient(listOf(LocalTones.current.gradientStart, LocalTones.current.gradientEnd)),
+                    MaterialTheme.shapes.large,
+                ),
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icons.Filled.MarkEmailRead, null, tint = Color.White, modifier = Modifier.size(34.dp)) }
+            Text("Welcome to Legacy AI Email Studio", style = MaterialTheme.typography.headlineSmall)
+            Text("Write an email once and send it to each of your customers one at a time - by hand, or with your " +
+                "AI agent doing the work while you approve every send.", style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        SectionCard {
-            Feature(Icons.Filled.Bolt, "Campaigns, one email at a time", "Personalised with each customer's name, with a pause between sends and a live progress bar.")
-            Feature(Icons.Filled.SmartToy, "Works with your AI agent", "Claude, Legacy AI or any MCP-compatible assistant can write and send through the app - only with your approval.")
-            Feature(Icons.Filled.Science, "Try it safely first", "The app starts in Simulation mode: everything works, but no email is sent until you connect your mailbox in Settings.")
+            SectionCard {
+                Feature(Icons.Filled.Bolt, "Campaigns, one email at a time", "Personalised with each customer's name, with a pause between sends and a live progress bar.")
+                Feature(Icons.Filled.SmartToy, "Works with your AI agent", "Claude, Legacy AI or any MCP-compatible assistant can write and send through the app - only with your approval.")
+                Feature(Icons.Filled.Science, "Try it safely first", "The app starts in Simulation mode: everything works, but no email is sent until you connect your mailbox in Settings.")
+            }
+
+            SectionCard(title = "About you", subtitle = "Used for your email signature and as the sender name. You can change it any time.") {
+                OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text("Your name or business name") }, leadingIcon = { Icon(Icons.Filled.Storefront, null) })
+                OutlinedTextField(email, { email = it.trim() }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text("Your email address") }, leadingIcon = { Icon(Icons.Filled.Email, null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+                OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text("Phone (optional)") }, leadingIcon = { Icon(Icons.Filled.PhoneAndroid, null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
+                OutlinedTextField(website, { website = it.trim() }, Modifier.fillMaxWidth(), singleLine = true,
+                    label = { Text("Website (optional)") }, leadingIcon = { Icon(Icons.Filled.Link, null) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
+            }
+
+            PrimaryButton("Get started", Icons.Filled.ArrowForward, Modifier.fillMaxWidth()) { finish(true) }
+            TextButton(onClick = { finish(false) }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Skip for now") }
         }
-
-        SectionCard(title = "About you", subtitle = "Used for your email signature and as the sender name. You can change it any time.") {
-            OutlinedTextField(name, { name = it }, Modifier.fillMaxWidth(), singleLine = true,
-                label = { Text("Your name or business name") }, leadingIcon = { Icon(Icons.Filled.Storefront, null) })
-            OutlinedTextField(email, { email = it.trim() }, Modifier.fillMaxWidth(), singleLine = true,
-                label = { Text("Your email address") }, leadingIcon = { Icon(Icons.Filled.Email, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
-            OutlinedTextField(phone, { phone = it }, Modifier.fillMaxWidth(), singleLine = true,
-                label = { Text("Phone (optional)") }, leadingIcon = { Icon(Icons.Filled.PhoneAndroid, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
-            OutlinedTextField(website, { website = it.trim() }, Modifier.fillMaxWidth(), singleLine = true,
-                label = { Text("Website (optional)") }, leadingIcon = { Icon(Icons.Filled.Link, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-        }
-
-        PrimaryButton("Get started", Icons.Filled.ArrowForward, Modifier.fillMaxWidth()) { finish(true) }
-        TextButton(onClick = { finish(false) }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Skip for now") }
     }
     problem?.let { MessageDialog("Welcome", it) { problem = null } }
 }

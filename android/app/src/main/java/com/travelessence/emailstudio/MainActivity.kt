@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.travelessence.emailstudio.core.Draft
@@ -118,6 +119,8 @@ fun AppRoot(app: App, start: Screen) {
     val snackbar = remember { SnackbarHostState() }
     val settings by state.settings.collectAsStateWithLifecycle()
     val campaign by app.campaign.state.collectAsStateWithLifecycle()
+    val wide = LocalConfiguration.current.screenWidthDp >= 600
+    fun isSelected(target: Screen) = screen == target || (target == Screen.More && screen in MORE_CHILDREN)
 
     LaunchedEffect(Unit) { state.navigation.collect { screen = it } }
     LaunchedEffect(Unit) { state.messages.collect { snackbar.showSnackbar(it, withDismissAction = true) } }
@@ -179,11 +182,10 @@ fun AppRoot(app: App, start: Screen) {
             }
         },
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+            if (!wide) NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 BOTTOM.forEach { (target, label, icon) ->
-                    val selected = screen == target || (target == Screen.More && screen in MORE_CHILDREN)
                     NavigationBarItem(
-                        selected = selected,
+                        selected = isSelected(target),
                         onClick = { screen = target },
                         icon = { Icon(icon, label) },
                         label = { Text(label) },
@@ -194,19 +196,36 @@ fun AppRoot(app: App, start: Screen) {
         snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        Box(Modifier.padding(padding).consumeWindowInsets(padding).imePadding()) {
-            when (screen) {
-                Screen.Dashboard -> DashboardScreen(app)
-                Screen.Compose -> ComposeScreen(app)
-                Screen.Recipients -> RecipientsScreen(app)
-                Screen.Automation -> AutomationScreen(app)
-                Screen.More -> MoreScreen(app) { screen = it }
-                Screen.QuickSend -> QuickSendScreen(app)
-                Screen.Signature -> SignatureScreen(app)
-                Screen.Outlook -> OutlookScreen(app)
-                Screen.History -> HistoryScreen(app)
-                Screen.Agents -> AgentsScreen(app)
-                Screen.Settings -> SettingsScreen(app)
+        Row(Modifier.padding(padding).consumeWindowInsets(padding).imePadding()) {
+            // Tablets and Chromebooks: a navigation rail on the left and a readable column in the middle.
+            if (wide) {
+                NavigationRail(containerColor = MaterialTheme.colorScheme.surface) {
+                    Spacer(Modifier.height(8.dp))
+                    BOTTOM.forEach { (target, label, icon) ->
+                        NavigationRailItem(
+                            selected = isSelected(target),
+                            onClick = { screen = target },
+                            icon = { Icon(icon, label) },
+                            label = { Text(label) },
+                        )
+                    }
+                }
+                VerticalDivider(color = LocalTones.current.border)
+            }
+            Box(Modifier.weight(1f).fillMaxHeight().wrapContentWidth().widthIn(max = 880.dp)) {
+                when (screen) {
+                    Screen.Dashboard -> DashboardScreen(app)
+                    Screen.Compose -> ComposeScreen(app)
+                    Screen.Recipients -> RecipientsScreen(app)
+                    Screen.Automation -> AutomationScreen(app)
+                    Screen.More -> MoreScreen(app) { screen = it }
+                    Screen.QuickSend -> QuickSendScreen(app)
+                    Screen.Signature -> SignatureScreen(app)
+                    Screen.Outlook -> OutlookScreen(app)
+                    Screen.History -> HistoryScreen(app)
+                    Screen.Agents -> AgentsScreen(app)
+                    Screen.Settings -> SettingsScreen(app)
+                }
             }
         }
     }

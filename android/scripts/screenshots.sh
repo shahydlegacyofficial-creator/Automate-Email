@@ -49,5 +49,28 @@ adb shell cmd statusbar collapse || true
 sleep 50
 adb exec-out screencap -p > "$OUT/light-automation-done.png"
 shot dark-automation Automation dark
+
+# Large screens for the Play listing: the same emulator, resized. Sizes are exact 9:16 / 16:9, as Play requires.
+large() {   # folder size density
+  adb shell wm size "$2"; adb shell wm density "$3"; sleep 4
+  OUT=../docs/android-screenshots/$1; mkdir -p "$OUT"
+  shot light-dashboard Dashboard light
+  shot light-compose Compose light
+  shot light-recipients Recipients light
+  shot light-agents Agents light --ez agents true
+  shot dark-compose Compose dark
+  shot light-signature Signature light
+  shot light-automation-start Automation light --ez start_campaign true
+  sleep 14
+  adb exec-out screencap -p > "$OUT/light-automation-running.png"
+  sleep 50   # let the campaign finish before the next size
+}
+large tablet-7in 1080x1920 280
+large tablet-10in 2560x1440 320
+large chromebook 1920x1080 200
+adb shell wm size reset; adb shell wm density reset
+OUT=../docs/android-screenshots
+file "$OUT"/*/*.png || true
+
 adb logcat -d -s AndroidRuntime:E > "$OUT/crash-log.txt" || true
 ls -la "$OUT"
