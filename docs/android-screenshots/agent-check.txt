@@ -6,5 +6,5 @@ ok  compose_email: {     "subject": "Hello {first_name}",     "body_preview": "D
 ok  preview_email: {     "to": "ada@example.com",     "subject": "Hello Ada",     "body": "Dear Ada,\n\nA note from CI.",     "attachments": [],     "note": "The signature is adde
 ok  send_test_email: {     "sent": true,     "to": [         "hello@northwind.example"     ],     "cc": [],     "subject": "[TEST] Hello Valued Customer",     "via": "Simulation mod
 ERR start_campaign: Android has one recipient list ('current'). Use add_recipients to build it.
-ok  get_history: {     "sessions": [         {             "kind": "manual",             "started": "2026-10-23T21:49:46",             "finished": "2026-10-23T21:49:46",        
+ok  get_history: {     "sessions": [         {             "kind": "manual",             "started": "2026-10-27T19:58:09",             "finished": "2026-10-27T19:58:09",        
 AGENT CHECK PASSED
