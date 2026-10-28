@@ -67,6 +67,7 @@ class MainActivity : ComponentActivity() {
         intent.getStringExtra("theme")?.let { t -> app.state.saveSettings { it.copy(theme = t) } }
         if (intent.getBooleanExtra("welcome", false)) { app.state.saveSettings { it.copy(onboarded = false) }; return }
         if (intent.getBooleanExtra("demo", false)) app.state.saveSettings { it.copy(onboarded = true) }
+        intent.getIntExtra("interval", 0).takeIf { it >= 10 }?.let { sec -> app.state.saveSettings { it.copy(intervalSeconds = sec) } }
         if (intent.getBooleanExtra("agents", false)) app.state.saveSettings { it.copy(aiEnabled = true, aiLan = true) }
         intent.getStringExtra("agent_token")?.let { token ->   // CI: a known token for the end-to-end MCP check
             app.state.secrets.put("ai_token", token)
