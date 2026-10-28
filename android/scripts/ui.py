@@ -28,12 +28,17 @@ def nodes():
 def find(text, last):
     wanted = text.casefold()
     height = int(re.search(r"(\d+)x(\d+)", adb("shell", "wm", "size").splitlines()[-1]).group(2))
-    hits = []
+    hits, seen = [], []
     for n in nodes():
+        label = n.get("text") or n.get("content-desc") or ""
+        if label:
+            seen.append(label)
         if wanted in (n.get("text", "").casefold(), n.get("content-desc", "").casefold()):
             x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
-            if y2 > y1 and y2 < height - 150:       # fully visible above the navigation bar
+            if y2 - y1 > 20 and y1 < height:       # on screen (bounds are clipped to what is visible)
                 hits.append(((x1 + x2) // 2, (y1 + y2) // 2))
+    if not hits:
+        print("on screen:", " | ".join(seen[:60]))
     return (hits[-1] if last else hits[0]) if hits else None
 
 
