@@ -12,13 +12,15 @@ adb shell pm clear $PKG > /dev/null
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
 adb shell settings put system show_touches 1
 # A freshly booted emulator's launcher is slow: let it settle so no "isn't responding" dialog lands in the video.
-adb shell input keyevent KEYCODE_HOME; sleep 20
+adb shell settings put global hide_error_dialogs 1 || true
+adb shell input keyevent KEYCODE_HOME; sleep 30
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null || true
 python3 scripts/ui.py settle -; sleep 3; python3 scripts/ui.py settle -
 adb shell am start -W -n $PKG/$ACT --es screen Dashboard --ez demo true --es theme light --ei interval 10 > /dev/null
 sleep 6
 
 ui() { python3 scripts/ui.py "$@"; }
-adb shell screenrecord --bit-rate 8000000 --time-limit 180 /sdcard/fgs-demo.mp4 &
+adb shell screenrecord --size 720x1600 --bit-rate 4000000 --time-limit 180 /sdcard/fgs-demo.mp4 &
 REC=$!
 T0=$(date +%s.%N)
 : > "$OUT/fgs-demo-events.txt"
