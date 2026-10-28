@@ -11,6 +11,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell pm clear $PKG > /dev/null
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
 adb shell settings put system show_touches 1
+# A freshly booted emulator's launcher is slow: let it settle so no "isn't responding" dialog lands in the video.
+adb shell input keyevent KEYCODE_HOME; sleep 20
+python3 scripts/ui.py settle -; sleep 3; python3 scripts/ui.py settle -
 adb shell am start -W -n $PKG/$ACT --es screen Dashboard --ez demo true --es theme light --ei interval 10 > /dev/null
 sleep 6
 

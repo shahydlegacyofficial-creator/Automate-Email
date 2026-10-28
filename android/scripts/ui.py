@@ -2,6 +2,7 @@
 
     python3 ui.py tap "Start sending" [--last] [--scroll 6]
     python3 ui.py has "Campaign complete"        exit code 0 when the text is on screen
+    python3 ui.py settle -                        dismiss an "isn't responding" dialog, if any
 """
 
 import re
@@ -16,12 +17,20 @@ def adb(*args):
 
 
 def nodes():
-    for _ in range(5):
+    for _ in range(8):
         adb("shell", "rm", "-f", "/sdcard/ui.xml")          # never read a stale dump
         adb("shell", "uiautomator", "dump", "/sdcard/ui.xml")
         xml = adb("exec-out", "cat", "/sdcard/ui.xml")
         if "<hierarchy" in xml:
-            return ET.fromstring(xml[xml.index("<hierarchy"):]).iter("node")
+            found = list(ET.fromstring(xml[xml.index("<hierarchy"):]).iter("node"))
+            texts = {n.get("text", "") for n in found}
+            if any("isn't responding" in t for t in texts) and "Wait" in texts:   # emulator hiccup: dismiss it
+                n = next(n for n in found if n.get("text") == "Wait")
+                x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
+                adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+                time.sleep(2)
+                continue
+            return found
         time.sleep(1)
     sys.exit("could not read the screen")
 
@@ -45,6 +54,9 @@ def find(text, last):
 
 def main():
     cmd, text, rest = sys.argv[1], sys.argv[2], sys.argv[3:]
+    if cmd == "settle":
+        nodes()
+        return
     last = "--last" in rest
     scrolls = int(rest[rest.index("--scroll") + 1]) if "--scroll" in rest else 0
     for attempt in range(scrolls + 1):
