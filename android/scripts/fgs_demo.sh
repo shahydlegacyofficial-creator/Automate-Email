@@ -28,15 +28,13 @@ ui tap Automation --last;  mark automation;  sleep 3
 ui tap "Start sending" --scroll 6; mark confirm; sleep 5
 ui tap Start;      mark started;     sleep 14
 adb shell input keyevent KEYCODE_HOME; mark background; sleep 6
-adb shell cmd statusbar expand-notifications; mark notification; sleep 7
-ui tap Pause;      mark paused;      sleep 6
-ui tap Resume;     mark resumed;     sleep 4
-mark running
+adb shell cmd statusbar expand-notifications; mark notification; sleep 12
+mark running       # the shade stays open: progress counts up, then the notification goes away
 for _ in $(seq 1 60); do   # until the campaign ends and the service stops itself
   adb shell dumpsys activity services $PKG | grep -q CampaignService || break
   sleep 2
 done
-mark finished;     sleep 7
+mark finished;     sleep 8
 adb shell cmd statusbar collapse
 adb shell am start -n $PKG/$ACT > /dev/null; mark reopened; sleep 6
 mark end

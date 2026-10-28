@@ -17,6 +17,7 @@ def adb(*args):
 
 def nodes():
     for _ in range(5):
+        adb("shell", "rm", "-f", "/sdcard/ui.xml")          # never read a stale dump
         adb("shell", "uiautomator", "dump", "/sdcard/ui.xml")
         xml = adb("exec-out", "cat", "/sdcard/ui.xml")
         if "<hierarchy" in xml:

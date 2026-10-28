@@ -31,10 +31,8 @@ CAPTIONS = {
     "confirm": ("4 · The user starts the campaign", "The user taps Start sending and confirms. This tap is what starts the foreground service."),
     "started": ("5 · One email at a time", "The app sends to one recipient, waits the chosen interval, then sends to the next, with live progress."),
     "background": ("6 · The user leaves the app", "Back on the home screen. The foreground service keeps the campaign's schedule running."),
-    "notification": ("7 · Always visible to the user", "While it runs, the service shows an ongoing notification with progress and Pause and Stop buttons."),
-    "paused": ("The user stays in control", "Pause from the notification: sending stops right away..."),
-    "resumed": ("The user stays in control", "...and Resume carries on from the next recipient."),
-    "running": ("8 · Still sending in the background", "The remaining emails go out one at a time while the app is not on screen."),
+    "notification": ("7 · Always visible to the user", "While it runs, the service shows an ongoing notification with live progress and Pause and Stop buttons, so the user can pause or stop at any time."),
+    "running": ("8 · Still sending in the background", "The remaining emails go out one at a time while the app is not on screen. Watch the count go up."),
     "finished": ("9 · The service stops itself", "After the last email the service stops and removes its notification. Only a short \"Campaign complete\" notice is left."),
     "reopened": ("Back in the app", "The campaign summary: every recipient was sent their own email."),
 }
