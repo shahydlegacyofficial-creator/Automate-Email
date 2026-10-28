@@ -155,8 +155,12 @@ Play Console will then ask about these permissions (*Policy and programmes → A
   > when the last email is sent. No other foreground service type fits: dataSync is limited to 6 hours a day and is for
   > transferring data, and the work cannot be deferred because the interval between emails is part of what the user asked for.
 
-  If Google asks for a video, record about 30 seconds: Compose → Recipients → Automation → Start, then show the
-  notification. Upload it to YouTube as *unlisted* and paste the link.
+  **Video:** use [`docs/play/fgs-demo.mp4`](docs/play/fgs-demo.mp4) (2 min 11 s, 1080p). It is a screen recording of
+  the app with captions: the user starts a campaign, leaves the app, the foreground-service notification shows
+  progress with Pause and Stop, and the service stops itself after the last email. Play Console asks for a link, so
+  upload it to YouTube as **Unlisted** (not Private, or the reviewer can't open it) and paste the YouTube link.
+  To record it again after app changes: push a commit whose message contains `[video]`, then run
+  `python scripts/make_fgs_video.py`.
 - **Contacts** (`READ_CONTACTS`): used only when the user picks *Phone contacts* under **More → Outlook data → Read from**, to add them as recipients. Nothing is
   uploaded.
 - **Notifications** (`POST_NOTIFICATIONS`): campaign progress, campaign finished, and AI-agent approval requests.

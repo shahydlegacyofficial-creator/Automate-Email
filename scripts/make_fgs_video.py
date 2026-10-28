@@ -34,7 +34,6 @@ CAPTIONS = {
     "notification": ("7 · Always visible to the user", "While it runs, the service shows an ongoing notification with live progress and Pause and Stop buttons, so the user can pause or stop at any time."),
     "running": ("8 · Still sending in the background", "The remaining emails go out one at a time while the app is not on screen. Watch the count go up."),
     "finished": ("9 · The service stops itself", "After the last email the service stops and removes its notification. Only a short \"Campaign complete\" notice is left."),
-    "reopened": ("Back in the app", "The campaign summary: every recipient was sent their own email."),
 }
 
 INTRO_TEXT = (
@@ -145,7 +144,7 @@ def main():
     events = [(float(t), name) for t, name in (l.split() for l in (PLAY / "fgs-demo-events.txt").read_text().split("\n") if l.strip())]
     vw, vh = map(int, probe(raw, "stream=width,height"))
     phone_w = round(vw * PHONE_H / vh / 2) * 2
-    end = next(t for t, n in events if n == "end")
+    end = next(t for t, n in events if n in ("reopened", "end"))   # the demo ends on the "Campaign complete" notice
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -177,7 +176,7 @@ def main():
             "-filter_complex",
             f"[0:v]fps=30,format=yuv420p[bg];"
             f"[1:v]fps=30,scale={phone_w}:{PHONE_H},setsar=1,trim=0:{end:.2f},setpts=PTS-STARTPTS+{INTRO}/TB[ph];"
-            f"[bg][ph]overlay={PHONE_X}:{PHONE_Y}:eof_action=pass:enable='between(t,{INTRO},{INTRO + end:.2f})'[v]",
+            f"[bg][ph]overlay={PHONE_X}:{PHONE_Y}:eof_action=repeat:enable='between(t,{INTRO},{INTRO + end:.2f})'[v]",
             "-map", "[v]", "-t", f"{total:.2f}",
             "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
             str(out),
